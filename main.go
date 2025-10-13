@@ -1,7 +1,7 @@
 package main
 
-import "go.mattglei.ch/timber"
+import "github.com/synthient/cli/internal/cli"
 
 func main() {
-	timber.Info("hello world!")
+	cli.Execute()
 }
