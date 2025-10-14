@@ -8,6 +8,7 @@ import (
 	"github.com/99designs/keyring"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/synthient"
 	"go.mattglei.ch/timber"
 )
@@ -29,6 +30,7 @@ func auth(cmd *cobra.Command, args []string) {
 			Affirmative("Yes").
 			Negative("No").
 			Value(&overwrite).
+			WithTheme(output.HuhTheme).
 			Run()
 		if err != nil {
 			timber.Fatal(err, "failed to confirm overwriting api key")
@@ -40,7 +42,12 @@ func auth(cmd *cobra.Command, args []string) {
 
 	fmt.Print("Please provide Synthient API key: ")
 	var key string
-	_, err = fmt.Scanln(&key)
+	err = huh.NewInput().
+		EchoMode(huh.EchoModePassword).
+		Title("Synthient API key").
+		Value(&key).
+		WithTheme(output.HuhTheme).
+		Run()
 	if err != nil {
 		timber.Fatal(err, "reading user input failed")
 	}
