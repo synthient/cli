@@ -2,12 +2,22 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/synthient"
 	"go.mattglei.ch/timber"
 )
 
 func lookup(cmd *cobra.Command, args []string) {
+	client, err := synthient.CreateClient()
+	if err != nil {
+		timber.Fatal(err, "failed to create client")
+	}
+
 	ip := args[0]
-	timber.Debug("ip:", ip)
+	resp, err := synthient.LookupIP(&client, ip)
+	if err != nil {
+		timber.Fatal(err, "failed to lookup given IP")
+	}
+	timber.Debug(resp.Location.City)
 }
 
 var lookupCmd = &cobra.Command{
