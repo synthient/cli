@@ -19,8 +19,5 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		timber.Fatal(err, "execute root command")
-	}
+	rootCmd.Execute() // nolint:errcheck
 }
