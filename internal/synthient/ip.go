@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func LookupIP(client *Client, ip string) (LookupResponse, error) {
+func (client *Client) LookupIP(ip string) (LookupResponse, error) {
 	req, err := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf("https://v3api.synthient.com/api/v3/lookup/ip/%s", ip),

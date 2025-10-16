@@ -7,13 +7,13 @@ import (
 )
 
 func lookup(cmd *cobra.Command, args []string) {
-	client, err := synthient.CreateClient()
+	synthientClient, err := synthient.CreateClient()
 	if err != nil {
 		timber.Fatal(err, "failed to create client")
 	}
 
 	ip := args[0]
-	resp, err := synthient.LookupIP(&client, ip)
+	resp, err := synthientClient.LookupIP(ip)
 	if err != nil {
 		timber.Fatal(err, "failed to lookup given IP")
 	}
