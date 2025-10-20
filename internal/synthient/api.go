@@ -2,13 +2,16 @@ package synthient
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	"go.mattglei.ch/timber"
 )
 
@@ -20,6 +23,13 @@ type Client struct {
 }
 
 func CreateClient() (Client, error) {
+	err := godotenv.Load()
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		timber.Fatal(err, "failed to load .env file")
+	} else {
+		timber.Done("loaded api key from .env")
+	}
+
 	apiKey := strings.TrimSpace(os.Getenv(env_var_key))
 	if apiKey == "" {
 		ring, err := OpenKeyring()

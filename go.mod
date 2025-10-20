@@ -5,6 +5,7 @@ go 1.25.2
 require (
 	github.com/99designs/keyring v1.2.2
 	github.com/charmbracelet/huh v0.8.0
+	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.10.1
 	go.mattglei.ch/timber v1.4.0
 )
