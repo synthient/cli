@@ -52,6 +52,7 @@ func (b Block) Output() {
 
 	fmt.Println(
 		headerColor.Width(maxRowSize).
+			AlignHorizontal(lipgloss.Center).
 			Render(b.Name),
 	)
 
