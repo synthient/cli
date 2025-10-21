@@ -17,7 +17,7 @@ func lookup(cmd *cobra.Command, args []string) {
 	if err != nil {
 		timber.Fatal(err, "failed to lookup given IP")
 	}
-	timber.Debug(resp.Location.City)
+	resp.Output()
 }
 
 var lookupCmd = &cobra.Command{

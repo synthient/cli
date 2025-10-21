@@ -26,8 +26,6 @@ func CreateClient() (Client, error) {
 	err := godotenv.Load()
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		timber.Fatal(err, "failed to load .env file")
-	} else {
-		timber.Done("loaded api key from .env")
 	}
 
 	apiKey := strings.TrimSpace(os.Getenv(env_var_key))
