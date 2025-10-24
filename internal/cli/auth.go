@@ -27,8 +27,6 @@ func auth(cmd *cobra.Command, args []string) {
 		var overwrite bool
 		err = huh.NewConfirm().
 			Title("API key already saved. Do you want to overwrite?").
-			Affirmative("Yes").
-			Negative("No").
 			Value(&overwrite).
 			WithTheme(output.HuhTheme).
 			Run()
