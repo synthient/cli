@@ -2,13 +2,31 @@ package cli
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
+	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 	"github.com/synthient/cli/internal/synthient"
 	"go.mattglei.ch/timber"
 )
 
 func lookup(cmd *cobra.Command, args []string) {
+	isTTY := term.IsTerminal(os.Stdin.Fd())
+	if !isTTY {
+		inputBinary, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			timber.Fatal(err, "failed to read standard input")
+		}
+		args = strings.Fields(string(inputBinary))
+	}
+
+	if len(args) == 0 {
+		timber.Warning("Given zero IP addresses to lookup")
+		return
+	}
+
 	synthientClient, err := synthient.CreateClient()
 	if err != nil {
 		timber.Fatal(err, "failed to create client")
@@ -30,7 +48,6 @@ func lookup(cmd *cobra.Command, args []string) {
 var lookupCmd = &cobra.Command{
 	Use:   "lookup",
 	Short: "Lookup information about a given IP",
-	Args:  cobra.MinimumNArgs(1),
 	Run:   lookup,
 }
 
