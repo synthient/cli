@@ -1,12 +1,15 @@
 package synthient
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/synthient/cli/internal/output"
+	"go.mattglei.ch/timber"
 )
 
 func (client *Client) LookupIP(ip string) (LookupResponse, error) {
@@ -21,8 +24,19 @@ func (client *Client) LookupIP(ip string) (LookupResponse, error) {
 
 	resp, err := synthientRequest[LookupResponse](client, req)
 	if err != nil {
+		if errors.Is(err, ErrApi) {
+			timber.ErrorMsg(
+				fmt.Sprintf(
+					"Failed to look up IP '%s': %s",
+					ip,
+					strings.TrimSpace(strings.TrimPrefix(err.Error(), ErrApi.Error())),
+				),
+			)
+			os.Exit(1)
+		}
 		return LookupResponse{}, fmt.Errorf("%w sending lookup request failed", err)
 	}
+
 	return resp, nil
 }
 
@@ -73,7 +87,6 @@ func (response LookupResponse) Output(spacing bool) {
 	if len(response.IPData.Enriched) != 0 {
 		headerStyle := lipgloss.NewStyle().Bold(true)
 		if spacing {
-
 			fmt.Println()
 		}
 		fmt.Println(headerStyle.Render("Proxy Providers"))

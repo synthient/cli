@@ -17,9 +17,17 @@ import (
 
 const env_var_key = "SYNTHIENT_API_KEY"
 
+// Error encountered when making a request to the API. Given when the response is not within the
+// 200-299 range
+var ErrApi = errors.New("error from API")
+
 type Client struct {
 	ApiKey     string
 	httpClient *http.Client
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 func CreateClient() (Client, error) {
@@ -71,6 +79,15 @@ func synthientRequest[T any](client *Client, request *http.Request) (T, error) {
 	err = resp.Body.Close()
 	if err != nil {
 		return zeroValue, fmt.Errorf("%w closing response body failed", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		var data ErrorResponse
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			return zeroValue, fmt.Errorf("%w parsing json for error response failed", err)
+		}
+		return zeroValue, fmt.Errorf("%w %s", ErrApi, data.Error)
 	}
 
 	var data T
