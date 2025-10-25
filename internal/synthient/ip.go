@@ -26,9 +26,11 @@ func (client *Client) LookupIP(ip string) (LookupResponse, error) {
 	return resp, nil
 }
 
-func (response LookupResponse) Output() {
+func (response LookupResponse) Output(spacing bool) {
 	fmt.Println(output.SYNTHIENT_COLOR.Bold(true).Render("IP")+":", response.IP)
-	fmt.Println()
+	if spacing {
+		fmt.Println()
+	}
 
 	blocks := []output.Block{
 		{
@@ -63,14 +65,17 @@ func (response LookupResponse) Output() {
 
 	for i, block := range blocks {
 		block.Output(0)
-		if i+1 != len(blocks) {
+		if spacing && i+1 != len(blocks) {
 			fmt.Println()
 		}
 	}
 
 	if len(response.IPData.Enriched) != 0 {
 		headerStyle := lipgloss.NewStyle().Bold(true)
-		fmt.Println()
+		if spacing {
+
+			fmt.Println()
+		}
 		fmt.Println(headerStyle.Render("Proxy Providers"))
 		for i, enrichedProxyData := range response.IPData.Enriched {
 			fmt.Printf("   %d. %s\n", i+1, enrichedProxyData.Provider)
