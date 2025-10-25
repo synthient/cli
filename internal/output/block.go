@@ -2,31 +2,30 @@ package output
 
 import (
 	"fmt"
-	"sort"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	headerColor = lipgloss.NewStyle().Bold(true)
-	keyColor    = lipgloss.NewStyle().Foreground(lipgloss.Color("#5d3fd3"))
+	headerStyle = lipgloss.NewStyle().Bold(true)
+	dataStyle   = lipgloss.NewStyle().PaddingLeft(3)
 )
 
 type Block struct {
 	Name   string
-	Values map[string]any
+	Values []BlockValue
 }
 
-func (b Block) Output() {
-	keys := make([]string, 0, len(b.Values))
-	for k := range b.Values {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+type BlockValue struct {
+	Key   string
+	Value any
+}
 
+func (b Block) Output(indentation int) {
 	maxKeyLength := 0
-	for _, k := range keys {
-		if l := len(k); l > maxKeyLength {
+	for _, v := range b.Values {
+		if l := len(v.Key); l > maxKeyLength {
 			maxKeyLength = l
 		}
 	}
@@ -34,14 +33,13 @@ func (b Block) Output() {
 	var (
 		rows       = []string{}
 		maxRowSize = 0
-		padding    = 3
+		padding    = 1 + indentation
 	)
-	for _, key := range keys {
-		value := b.Values[key]
+	for _, value := range b.Values {
 		row := fmt.Sprintf(
 			"%s %v",
-			keyColor.Width(maxKeyLength+padding+1).Render(key),
-			value,
+			SYNTHIENT_COLOR.PaddingLeft(indentation).Width(maxKeyLength+padding).Render(value.Key),
+			value.Value,
 		)
 		rows = append(rows, row)
 		width, _ := lipgloss.Size(row)
@@ -50,13 +48,12 @@ func (b Block) Output() {
 		}
 	}
 
-	fmt.Println(
-		headerColor.Width(maxRowSize).
-			AlignHorizontal(lipgloss.Center).
-			Render(b.Name),
-	)
-
-	for _, row := range rows {
-		fmt.Println(row)
+	if b.Name != "" {
+		fmt.Println(
+			headerStyle.PaddingLeft(indentation).Width(maxRowSize + 6).
+				Render(b.Name),
+		)
 	}
+
+	fmt.Println(dataStyle.Render(strings.Join(rows, "\n")))
 }
