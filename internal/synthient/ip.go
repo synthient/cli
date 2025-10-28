@@ -43,10 +43,10 @@ func (client *Client) LookupIP(ip string) (LookupResponse, error) {
 	return resp, nil
 }
 
-func (r LookupResponse) Output(spacing bool) {
-	fmt.Println(output.SYNTHIENT_COLOR.Bold(true).Render("IP")+":", r.IP)
+func (r LookupResponse) Output(out *os.File, styles output.Styles, spacing bool) {
+	output.WriteLine(out, styles.SynthientColor.Bold(true).Render("IP")+":", r.IP)
 	if spacing {
-		fmt.Println()
+		output.WriteLine(out)
 	}
 
 	blocks := []output.Block{
@@ -81,27 +81,27 @@ func (r LookupResponse) Output(spacing bool) {
 	}
 
 	for i, block := range blocks {
-		block.Output(0)
+		block.Output(out, styles, 0)
 		if spacing && i+1 != len(blocks) {
-			fmt.Println()
+			output.WriteLine(out)
 		}
 	}
 
 	if len(r.IPData.Enriched) != 0 {
-		headerStyle := lipgloss.NewStyle().Bold(true)
+		headerStyle := lipgloss.NewStyle().Bold(true).Renderer(lipgloss.NewRenderer(out))
 		if spacing {
-			fmt.Println()
+			output.WriteLine(out)
 		}
-		fmt.Println(headerStyle.Render("Proxy Providers"))
+		output.WriteLine(out, headerStyle.Render("Proxy Providers"))
 		for i, enrichedProxyData := range r.IPData.Enriched {
-			fmt.Printf("   %d. %s\n", i+1, enrichedProxyData.Provider)
+			output.WriteLine(out, fmt.Sprintf("   %d. %s", i+1, enrichedProxyData.Provider))
 			block := output.Block{
 				Values: []output.BlockValue{
 					{Key: "Type", Value: enrichedProxyData.Type},
 					{Key: "Last Seen", Value: enrichedProxyData.LastSeen},
 				},
 			}
-			block.Output(5)
+			block.Output(out, styles, 5)
 		}
 	}
 }

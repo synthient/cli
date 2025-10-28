@@ -2,14 +2,10 @@ package output
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	headerStyle = lipgloss.NewStyle().Bold(true)
-	dataStyle   = lipgloss.NewStyle().PaddingLeft(3)
 )
 
 type Block struct {
@@ -22,7 +18,7 @@ type BlockValue struct {
 	Value any
 }
 
-func (b Block) Output(indentation int) {
+func (b Block) Output(out *os.File, styles Styles, indentation int) {
 	maxKeyLength := 0
 	for _, v := range b.Values {
 		if l := len(v.Key); l > maxKeyLength {
@@ -38,7 +34,9 @@ func (b Block) Output(indentation int) {
 	for _, value := range b.Values {
 		row := fmt.Sprintf(
 			"%s %v",
-			SYNTHIENT_COLOR.PaddingLeft(indentation).Width(maxKeyLength+padding).Render(value.Key),
+			styles.SynthientColor.PaddingLeft(indentation).
+				Width(maxKeyLength+padding).
+				Render(value.Key),
 			value.Value,
 		)
 		rows = append(rows, row)
@@ -49,11 +47,12 @@ func (b Block) Output(indentation int) {
 	}
 
 	if b.Name != "" {
-		fmt.Println(
-			headerStyle.PaddingLeft(indentation).Width(maxRowSize + 6).
+		WriteLine(
+			out,
+			styles.BlockHeader.PaddingLeft(indentation).Width(maxRowSize+6).
 				Render(b.Name),
 		)
 	}
 
-	fmt.Println(dataStyle.Render(strings.Join(rows, "\n")))
+	WriteLine(out, styles.BlockData.Render(strings.Join(rows, "\n")))
 }
