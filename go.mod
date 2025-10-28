@@ -1,6 +1,6 @@
 module github.com/synthient/cli
 
-go 1.25.2
+go 1.25.3
 
 require (
 	github.com/99designs/keyring v1.2.2
