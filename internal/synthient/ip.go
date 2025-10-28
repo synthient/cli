@@ -45,6 +45,13 @@ func (r LookupResponse) Output(out *os.File, styles output.Styles, spacing bool)
 		output.WriteLine(out)
 	}
 
+	var categories string
+	if len(r.IPData.Categories) == 0 {
+		categories = "None"
+	} else {
+		categories = strings.Join(r.IPData.Categories, ", ")
+	}
+
 	blocks := []output.Block{
 		{
 			Name: "Network",
@@ -70,7 +77,7 @@ func (r LookupResponse) Output(out *os.File, styles output.Styles, spacing bool)
 			Name: "IP Data",
 			Values: []output.BlockValue{
 				{Key: "Device Count", Value: r.IPData.DeviceCount},
-				{Key: "Categories", Value: strings.Join(r.IPData.Categories, ", ")},
+				{Key: "Categories", Value: categories},
 				{Key: "IP Risk", Value: r.IPData.IPRisk},
 			},
 		},
