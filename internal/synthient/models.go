@@ -12,9 +12,9 @@ type LookupResponse struct {
 		Domain     interface{} `json:"domain"`
 	} `json:"network"`
 	Location struct {
-		Country   string  `json:"country"`
-		State     string  `json:"state"`
 		City      string  `json:"city"`
+		State     string  `json:"state"`
+		Country   string  `json:"country"`
 		Timezone  string  `json:"timezone"`
 		Longitude float64 `json:"longitude"`
 		Latitude  float64 `json:"latitude"`
@@ -25,11 +25,11 @@ type LookupResponse struct {
 		Devices     []interface{} `json:"devices"`
 		Behavior    []string      `json:"behavior"`
 		Categories  []string      `json:"categories"`
+		IPRisk      int           `json:"ip_risk"`
 		Enriched    []struct {
 			Provider string `json:"provider"`
 			Type     string `json:"type"`
 			LastSeen string `json:"last_seen"`
 		} `json:"enriched"`
-		IPRisk int `json:"ip_risk"`
 	} `json:"ip_data"`
 }

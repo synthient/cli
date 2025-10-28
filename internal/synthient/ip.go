@@ -1,10 +1,13 @@
 package synthient
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -40,8 +43,8 @@ func (client *Client) LookupIP(ip string) (LookupResponse, error) {
 	return resp, nil
 }
 
-func (response LookupResponse) Output(spacing bool) {
-	fmt.Println(output.SYNTHIENT_COLOR.Bold(true).Render("IP")+":", response.IP)
+func (r LookupResponse) Output(spacing bool) {
+	fmt.Println(output.SYNTHIENT_COLOR.Bold(true).Render("IP")+":", r.IP)
 	if spacing {
 		fmt.Println()
 	}
@@ -50,29 +53,29 @@ func (response LookupResponse) Output(spacing bool) {
 		{
 			Name: "Network",
 			Values: []output.BlockValue{
-				{Key: "Asn", Value: response.Network.Asn},
-				{Key: "ISP", Value: response.Network.Isp},
-				{Key: "Type", Value: response.Network.Type},
+				{Key: "Asn", Value: r.Network.Asn},
+				{Key: "ISP", Value: r.Network.Isp},
+				{Key: "Type", Value: r.Network.Type},
 			},
 		},
 		{
 			Name: "Location",
 			Values: []output.BlockValue{
-				{Key: "City", Value: response.Location.City},
-				{Key: "State", Value: response.Location.State},
-				{Key: "Country", Value: response.Location.Country},
-				{Key: "Timezone", Value: response.Location.Timezone},
-				{Key: "Longitude", Value: response.Location.Longitude},
-				{Key: "Latitude", Value: response.Location.Latitude},
-				{Key: "Geo Hash", Value: response.Location.GeoHash},
+				{Key: "City", Value: r.Location.City},
+				{Key: "State", Value: r.Location.State},
+				{Key: "Country", Value: r.Location.Country},
+				{Key: "Timezone", Value: r.Location.Timezone},
+				{Key: "Longitude", Value: r.Location.Longitude},
+				{Key: "Latitude", Value: r.Location.Latitude},
+				{Key: "Geo Hash", Value: r.Location.GeoHash},
 			},
 		},
 		{
 			Name: "IP Data",
 			Values: []output.BlockValue{
-				{Key: "Device Count", Value: response.IPData.DeviceCount},
-				{Key: "Categories", Value: strings.Join(response.IPData.Categories, ", ")},
-				{Key: "IP Risk", Value: response.IPData.IPRisk},
+				{Key: "Device Count", Value: r.IPData.DeviceCount},
+				{Key: "Categories", Value: strings.Join(r.IPData.Categories, ", ")},
+				{Key: "IP Risk", Value: r.IPData.IPRisk},
 			},
 		},
 	}
@@ -84,13 +87,13 @@ func (response LookupResponse) Output(spacing bool) {
 		}
 	}
 
-	if len(response.IPData.Enriched) != 0 {
+	if len(r.IPData.Enriched) != 0 {
 		headerStyle := lipgloss.NewStyle().Bold(true)
 		if spacing {
 			fmt.Println()
 		}
 		fmt.Println(headerStyle.Render("Proxy Providers"))
-		for i, enrichedProxyData := range response.IPData.Enriched {
+		for i, enrichedProxyData := range r.IPData.Enriched {
 			fmt.Printf("   %d. %s\n", i+1, enrichedProxyData.Provider)
 			block := output.Block{
 				Values: []output.BlockValue{
@@ -101,4 +104,36 @@ func (response LookupResponse) Output(spacing bool) {
 			block.Output(5)
 		}
 	}
+}
+
+func (r LookupResponse) OutputCSV(writer *csv.Writer) {
+	enrichedData, err := json.Marshal(r.IPData.Enriched)
+	if err != nil {
+		timber.Fatal(err, "failed to marshal JSON data for enriched data")
+	}
+
+	err = writer.Write([]string{
+		r.IP,
+
+		strconv.Itoa(r.Network.Asn),
+		r.Network.Isp,
+		r.Network.Type,
+
+		r.Location.City,
+		r.Location.State,
+		r.Location.Country,
+		r.Location.Timezone,
+		strconv.FormatFloat(r.Location.Longitude, 'f', -1, 64),
+		strconv.FormatFloat(r.Location.Latitude, 'f', -1, 64),
+		r.Location.GeoHash,
+
+		strings.Join(r.IPData.Behavior, "|"),
+		strings.Join(r.IPData.Categories, "|"),
+		strconv.Itoa(r.IPData.IPRisk),
+		string(enrichedData),
+	})
+	if err != nil {
+		timber.Fatal(err, "failed to write csv row for ip")
+	}
+	writer.Flush()
 }
