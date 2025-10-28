@@ -7,11 +7,13 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/synthient/cli/internal/conf"
 	"go.mattglei.ch/timber"
 )
 
@@ -23,6 +25,7 @@ var ErrApi = errors.New("error from API")
 
 type Client struct {
 	ApiKey     string
+	Base       *url.URL
 	httpClient *http.Client
 }
 
@@ -30,7 +33,7 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-func CreateClient() (Client, error) {
+func CreateClient(config conf.Config) (Client, error) {
 	err := godotenv.Load()
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		timber.Fatal(err, "failed to load .env file")
@@ -58,7 +61,16 @@ func CreateClient() (Client, error) {
 		os.Exit(1)
 	}
 
-	return Client{ApiKey: apiKey, httpClient: &http.Client{Timeout: 20 * time.Second}}, nil
+	base, err := url.Parse(config.Host)
+	if err != nil {
+		timber.Fatal(err, "failed to parse host of:", config.Host)
+	}
+
+	return Client{
+		ApiKey:     apiKey,
+		Base:       base,
+		httpClient: &http.Client{Timeout: 20 * time.Second},
+	}, nil
 }
 
 func synthientRequest[T any](client *Client, request *http.Request) (T, error) {

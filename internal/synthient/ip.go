@@ -16,11 +16,7 @@ import (
 )
 
 func (client *Client) LookupIP(ip string) (LookupResponse, error) {
-	req, err := http.NewRequest(
-		http.MethodGet,
-		fmt.Sprintf("https://v3api.synthient.com/api/v3/lookup/ip/%s", ip),
-		nil,
-	)
+	req, err := http.NewRequest(http.MethodGet, client.Base.JoinPath("lookup/ip", ip).String(), nil)
 	if err != nil {
 		return LookupResponse{}, fmt.Errorf("%w creating request failed", err)
 	}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/synthient"
 	"go.mattglei.ch/timber"
@@ -55,7 +56,8 @@ func lookup(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	synthientClient, err := synthient.CreateClient()
+	config := conf.Read()
+	synthientClient, err := synthient.CreateClient(config)
 	if err != nil {
 		timber.Fatal(err, "failed to create client")
 	}
