@@ -4,12 +4,10 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
@@ -42,13 +40,9 @@ func lookup(cmd *cobra.Command, args []string) {
 		defer file.Close() // nolint:errcheck
 	}
 
-	isTTY := term.IsTerminal(os.Stdin.Fd())
-	if !isTTY {
-		inputBinary, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			timber.Fatal(err, "failed to read standard input")
-		}
-		args = strings.Fields(string(inputBinary))
+	pipedIn := PipedInput()
+	if pipedIn != "" {
+		args = strings.Fields(pipedIn)
 	}
 
 	if len(args) == 0 {
