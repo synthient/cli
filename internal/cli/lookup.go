@@ -22,7 +22,7 @@ var (
 	lookupOutput           = os.Stdout
 )
 
-func lookup(cmd *cobra.Command, args []string) {
+func runLookup(cmd *cobra.Command, args []string) {
 	if !slices.Contains(lookupFormatFlagValues, lookupFormatFlag) {
 		timber.ErrorMsg(
 			"invalid output flag value of",
@@ -104,7 +104,7 @@ func lookup(cmd *cobra.Command, args []string) {
 var lookupCmd = &cobra.Command{
 	Use:   "lookup",
 	Short: "Lookup information about a given IP",
-	Run:   lookup,
+	Run:   runLookup,
 }
 
 func init() {

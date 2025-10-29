@@ -13,7 +13,7 @@ import (
 	"go.mattglei.ch/timber"
 )
 
-func auth(cmd *cobra.Command, args []string) {
+func runAuth(cmd *cobra.Command, args []string) {
 	ring, err := synthient.OpenKeyring()
 	if err != nil {
 		timber.Fatal(err, "failed to open keyring")
@@ -64,7 +64,7 @@ func auth(cmd *cobra.Command, args []string) {
 
 var authCmd = &cobra.Command{
 	Use:   "auth",
-	Run:   auth,
+	Run:   runAuth,
 	Short: "Login using a Synthient API key",
 	Args:  cobra.NoArgs,
 }
