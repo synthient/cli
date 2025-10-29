@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/csv"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -15,15 +14,17 @@ func runProcess(cmd *cobra.Command, args []string) {
 	if err != nil {
 		timber.Fatal(err, "failed to read", filename)
 	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			timber.Fatal(err, "failed to close", filename)
+		}
+	}()
 
-	cr := csv.NewReader(file)
-	ipColumn := process.GetIpColumn(cr)
-	timber.Debug(ipColumn)
+	// cr := csv.NewReader(file)
+	// ipColumn := process.GetIpColumn(cr)
+	process.SelectColumnsToAdd()
 
-	err = file.Close()
-	if err != nil {
-		timber.Fatal(err, "failed to close", filename)
-	}
 }
 
 var processCmd = &cobra.Command{
