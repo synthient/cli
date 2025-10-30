@@ -1,6 +1,6 @@
 # synthient/cli
 
-Synthient's official CLI tool.
+Synthient's official CLI tool. Current in beta.
 
 ## Install
 
@@ -9,3 +9,43 @@ Synthient's official CLI tool.
 | macOS   | `brew install synthient/tap/cli` or `go install github.com/synthient/cli` |
 | Linux   | `go install github.com/synthient/cli`                                     |
 | Windows | `go install github.com/synthient/cli`                                     |
+
+## Basic Commands
+
+### `synthient auth`
+
+Authenticate the CLI with your Synthient API key. This API key will then be stored in your system's keychain for secure storage. If you want to authenticate a different way there are two other options:
+
+1. Provide your API key as an environment variable with the key being `SYNTHIENT_API_KEY`.
+2. Store it in a `.env` file in the current directory with the key `SYNTHIENT_API_KEY`.
+
+### `synthient lookup`
+
+> [!NOTE]
+> You need to be [authenticated](#synthient-auth) to run this command.
+
+Lookup a given IP address. Works with piped input and/or multiple IP address as seen here:
+
+```bash
+synthient lookup 213.149.183.127
+```
+
+```bash
+synthient lookup 213.149.183.127 168.205.174.84
+```
+
+```bash
+echo "213.149.183.127 168.205.174.84" | synthient lookup
+```
+
+Here is a full look into all of the options for the `lookup` command:
+
+```txt
+Usage:
+  synthient lookup [flags]
+
+Flags:
+  -f, --format string   Output format [text|json|csv] (default "text")
+  -h, --help            help for lookup
+  -o, --output string   Where to write output: '-' for stdout, or a file path (e.g. 'lookup.json' or 'lookup.csv) (default "-")
+```
