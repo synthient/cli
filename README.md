@@ -1,6 +1,6 @@
 # synthient/cli
 
-Synthient's official CLI tool. Current in beta.
+Synthient's official CLI tool. Currently in beta.
 
 ## Install
 

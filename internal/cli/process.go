@@ -28,9 +28,10 @@ func runProcess(cmd *cobra.Command, args []string) {
 }
 
 var processCmd = &cobra.Command{
-	Use:   "process",
-	Short: "Process and inject synthient data into a CSV",
-	Run:   runProcess,
+	Use:    "process",
+	Short:  "Process and inject synthient data into a CSV",
+	Hidden: true,
+	Run:    runProcess,
 }
 
 func init() {
