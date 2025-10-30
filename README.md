@@ -4,11 +4,11 @@ Synthient's official CLI tool. Currently in beta.
 
 ## Install
 
-| System  | Install Command                                                           |
-| ------- | ------------------------------------------------------------------------- |
-| macOS   | `brew install synthient/tap/cli` or `go install github.com/synthient/cli` |
-| Linux   | `go install github.com/synthient/cli`                                     |
-| Windows | `go install github.com/synthient/cli`                                     |
+| System  | Install Command                                                                 |
+| ------- | ------------------------------------------------------------------------------- |
+| macOS   | `brew install synthient/tap/synthient` or `go install github.com/synthient/cli` |
+| Linux   | `go install github.com/synthient/cli`                                           |
+| Windows | `go install github.com/synthient/cli`                                           |
 
 ## Basic Commands
 

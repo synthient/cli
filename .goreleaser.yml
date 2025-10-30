@@ -8,7 +8,7 @@ before:
   hooks:
     - go mod download
 builds:
-  - id: cli
+  - id: synthient
     main: ./cmd
     binary: synthient
     env:
