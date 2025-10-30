@@ -21,12 +21,11 @@ builds:
       - amd64
       - arm64
 homebrew_casks:
-  - name: cli
+  - name: synthient
     completions:
       bash: completions/synthient.bash
       zsh: completions/synthient.zsh
       fish: completions/synthient.fish
-    binary: 'synthient'
     url:
       template: 'https://github.com/synthient/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}'
     homepage: https://github.com/synthient/cli
