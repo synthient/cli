@@ -32,3 +32,9 @@ homebrew_casks:
     repository:
       owner: synthient
       name: homebrew-tap
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/synthient"]
+          end
