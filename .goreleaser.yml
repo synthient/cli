@@ -8,13 +8,17 @@ before:
   hooks:
     - go mod download
 builds:
-  - goos:
+  - id: cli
+    main: ./cmd
+    binary: synthient
+    env:
+      - CGO_ENABLED=0
+    goos:
       - darwin
       - linux
       - windows
     goarch:
       - amd64
-      - arm
       - arm64
 homebrew_casks:
   - name: synthient
