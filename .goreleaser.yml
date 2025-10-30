@@ -35,4 +35,4 @@ homebrew_casks:
         - ~/.config/synthient
     repository:
       owner: synthient
-      name: tap
+      name: homebrew-tap
