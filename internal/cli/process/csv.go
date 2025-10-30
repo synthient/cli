@@ -2,7 +2,6 @@ package process
 
 import (
 	"encoding/csv"
-	"slices"
 
 	"github.com/charmbracelet/huh"
 	"github.com/synthient/cli/internal/output"
@@ -31,35 +30,38 @@ func GetIpColumn(cr *csv.Reader) int {
 	return column
 }
 
-type LookupColumnSelection struct {
-	IP                bool
-	NetworkAsn        bool
-	NetworkIsp        bool
-	NetworkType       bool
-	LocationCity      bool
-	LocationState     bool
-	LocationCountry   bool
-	LocationTimezone  bool
-	LocationLongitude bool
-	LocationLatitude  bool
-	LocationGeoHash   bool
-	IPDataDeviceCount bool
-	IPDataBehavior    bool
-	IPDataCategories  bool
-	IPDataIPRisk      bool
-	IPDataEnriched    bool
-}
+type LookupColumnSelection int
 
-func SelectColumnsToAdd() LookupColumnSelection {
-	var columns []string
-	options := []huh.Option[string]{
-		huh.NewOption("IP", "ip"),
-		huh.NewOption("Network Asn", "network.asn"),
+const (
+	IpColumn LookupColumnSelection = iota
+	NetworkAsnColumn
+	NetworkIspColumn
+	NetworkTypeColumn
+	LocationCityColumn
+	LocationStateColumn
+	LocationCountryColumn
+	LocationTimezoneColumn
+	LocationLongitudeColumn
+	LocationLatitudeColumn
+	LocationGeoHashColumn
+	IPDataDeviceCountColumn
+	IPDataBehaviorColumn
+	IPDataCategoriesColumn
+	IPDataIPRiskColumn
+	IPDataEnrichedColumn
+)
+
+func SelectColumnsToAdd() []LookupColumnSelection {
+	var columns []LookupColumnSelection
+	options := []huh.Option[LookupColumnSelection]{
+		huh.NewOption("IP", IpColumn),
+		huh.NewOption("Network Asn", NetworkAsnColumn),
+		huh.NewOption("Network ISP", NetworkIspColumn),
 	}
 	for i, opt := range options {
 		options[i] = opt.Selected(true)
 	}
-	err := huh.NewMultiSelect[string]().Title("Data you want to add").
+	err := huh.NewMultiSelect[LookupColumnSelection]().Title("Data you want to add").
 		Description("These columns will get appended to your csv file.").
 		Options(options...).
 		WithTheme(output.HuhTheme).
@@ -67,8 +69,5 @@ func SelectColumnsToAdd() LookupColumnSelection {
 	if err != nil {
 		timber.Fatal(err, "failed to run multi select")
 	}
-	return LookupColumnSelection{
-		IP:         slices.Contains(columns, "ip"),
-		NetworkAsn: slices.Contains(columns, "network.asn"),
-	}
+	return columns
 }
