@@ -1,0 +1,31 @@
+release:
+  github:
+    owner: synthient
+    name: 'cli'
+  prerelease: auto
+before:
+  hooks:
+    - go mod download
+builds:
+  - goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - '6'
+      - '7'
+brews:
+  - repository:
+      owner: synthient
+      name: tap
+    directory: Formula
+    homepage: 'https://github.com/synthient/cli'
+    description: 'Official CLI for synthient'
+    commit_author:
+      name: gleich
+      email: git@mattglei.ch
+    install: bin.install "synthient"
