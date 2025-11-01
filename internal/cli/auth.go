@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/99designs/keyring"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/synthient"
+	"github.com/zalando/go-keyring"
 	"go.mattglei.ch/timber"
 )
 
 func runAuth(cmd *cobra.Command, args []string) {
-	ring, err := synthient.OpenKeyring()
-	if err != nil {
-		timber.Fatal(err, "failed to open keyring")
-	}
-
-	currentKey, err := synthient.ReadApiKey(ring)
-	if err != nil && !errors.Is(err, keyring.ErrKeyNotFound) {
+	currentKey, err := synthient.ReadApiKey()
+	if err != nil && !errors.Is(err, keyring.ErrNotFound) {
 		timber.Fatal(err, "unexpected error when checking for existing key")
 	}
 	if currentKey != "" {
@@ -55,7 +50,7 @@ func runAuth(cmd *cobra.Command, args []string) {
 		timber.FatalMsg("Please provide valid key.")
 	}
 
-	err = synthient.StoreApiKey(ring, key)
+	err = synthient.StoreApiKey(key)
 	if err != nil {
 		timber.Fatal(err, "failed to store API key")
 	}

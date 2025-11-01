@@ -3,31 +3,24 @@ package synthient
 import (
 	"fmt"
 
-	"github.com/99designs/keyring"
+	"github.com/zalando/go-keyring"
 )
 
 const (
-	keyring_item_name = "synthient-api-key"
+	keyring_service_name = "synthient"
+	keyring_key_name     = "token"
 )
 
-func OpenKeyring() (keyring.Keyring, error) {
-	ring, err := keyring.Open(keyring.Config{ServiceName: "synthient"})
-	if err != nil {
-		return nil, fmt.Errorf("%w failed to open keyring", err)
-	}
-	return ring, nil
-}
-
-func ReadApiKey(ring keyring.Keyring) (string, error) {
-	v, err := ring.Get(keyring_item_name)
+func ReadApiKey() (string, error) {
+	v, err := keyring.Get(keyring_service_name, keyring_key_name)
 	if err != nil {
 		return "", err
 	}
-	return string(v.Data), nil
+	return v, nil
 }
 
-func StoreApiKey(ring keyring.Keyring, key string) error {
-	err := ring.Set(keyring.Item{Key: keyring_item_name, Data: []byte(key)})
+func StoreApiKey(key string) error {
+	err := keyring.Set(keyring_service_name, keyring_key_name, key)
 	if err != nil {
 		return fmt.Errorf("%w write api key to keyring", err)
 	}

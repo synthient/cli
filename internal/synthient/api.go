@@ -41,11 +41,7 @@ func CreateClient(config conf.Config) (Client, error) {
 
 	apiKey := strings.TrimSpace(os.Getenv(env_var_key))
 	if apiKey == "" {
-		ring, err := OpenKeyring()
-		if err != nil {
-			return Client{}, fmt.Errorf("%w opening keyring failed", err)
-		}
-		apiKey, err = ReadApiKey(ring)
+		apiKey, err = ReadApiKey()
 		if err != nil {
 			return Client{}, fmt.Errorf("%w reading api key failed", err)
 		}
