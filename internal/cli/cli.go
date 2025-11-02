@@ -14,7 +14,7 @@ func root(cmd *cobra.Command, args []string) {
 
 var rootCmd = &cobra.Command{
 	Use:   "synthient",
-	Short: "Official CLI tool for Synthient",
+	Short: "Official CLI tool for Synthient [https://github.com/synthient/cli]",
 	Run:   root,
 }
 
