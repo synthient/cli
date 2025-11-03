@@ -14,6 +14,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/synthient/cli/internal/conf"
+	"github.com/zalando/go-keyring"
 	"go.mattglei.ch/timber"
 )
 
@@ -43,6 +44,15 @@ func CreateClient(config conf.Config) (Client, error) {
 	if apiKey == "" {
 		apiKey, err = ReadApiKey()
 		if err != nil {
+			if errors.Is(err, keyring.ErrNotFound) {
+				timber.ErrorMsg(
+					fmt.Sprintf(
+						"No API key found. Please run `synthient auth` or provide it via the %s environment variable.",
+						env_var_key,
+					),
+				)
+				os.Exit(1)
+			}
 			return Client{}, fmt.Errorf("%w reading api key failed", err)
 		}
 	}
