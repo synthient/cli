@@ -5,17 +5,15 @@ import (
 	"go.mattglei.ch/timber"
 )
 
-func root(cmd *cobra.Command, args []string) {
-	err := cmd.Help()
-	if err != nil {
-		timber.Fatal(err, "output help")
-	}
-}
-
 var rootCmd = &cobra.Command{
 	Use:   "synthient",
 	Short: "Official CLI tool for Synthient [https://github.com/synthient/cli]",
-	Run:   root,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := cmd.Help()
+		if err != nil {
+			timber.Fatal(err, "output help")
+		}
+	},
 }
 
 func Execute() {
