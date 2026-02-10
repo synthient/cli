@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"strings"
 	"time"
 
 	"github.com/synthient/cli/internal/cli"
@@ -20,6 +22,10 @@ func main() {
 	cli.Root.AddCommand(stream.Command)
 	err := cli.Root.Execute()
 	if err != nil {
-		timber.Fatal(err, "failed to execute root command")
+		if strings.HasPrefix(err.Error(), "unknown command") {
+			os.Exit(1)
+		} else {
+			timber.Fatal(err, "failed to execute root command")
+		}
 	}
 }
