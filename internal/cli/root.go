@@ -5,7 +5,7 @@ import (
 	"go.mattglei.ch/timber"
 )
 
-var rootCmd = &cobra.Command{
+var Root = &cobra.Command{
 	Use:   "synthient",
 	Short: "Official CLI tool for Synthient [https://github.com/synthient/cli]",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -14,8 +14,4 @@ var rootCmd = &cobra.Command{
 			timber.Fatal(err, "output help")
 		}
 	},
-}
-
-func Execute() {
-	rootCmd.Execute() // nolint:errcheck
 }

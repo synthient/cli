@@ -1,4 +1,4 @@
-package synthient
+package auth
 
 import (
 	"fmt"
@@ -11,18 +11,18 @@ const (
 	keyring_key_name     = "token"
 )
 
-func ReadApiKey() (string, error) {
-	v, err := keyring.Get(keyring_service_name, keyring_key_name)
+func ReadKeyring() (string, error) {
+	keyringKey, err := keyring.Get(keyring_service_name, keyring_key_name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("getting api key from keyring: %w", err)
 	}
-	return v, nil
+	return keyringKey, nil
 }
 
 func StoreApiKey(key string) error {
 	err := keyring.Set(keyring_service_name, keyring_key_name, key)
 	if err != nil {
-		return fmt.Errorf("%w write api key to keyring", err)
+		return fmt.Errorf("writing api key to keyring: %w", err)
 	}
 
 	return nil

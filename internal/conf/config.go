@@ -2,7 +2,9 @@ package conf
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -11,27 +13,57 @@ import (
 )
 
 type Config struct {
-	Host string `toml:"host"`
+	endpoints struct {
+		baseApi   string `toml:"base_api"`
+		baseFeeds string `toml:"base_feeds"`
+	} `toml:"endpoints"`
+
+	// fields that are created based on existing fields
+	BaseApiURL   *url.URL `toml:"-"`
+	BaseFeedsURL *url.URL `toml:"-"`
 }
 
-func Read() Config {
+func Read() (Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		timber.Fatal(err, "failed to get the user's home directory")
 	}
 
-	bin, err := os.ReadFile(filepath.Join(home, ".config", "synthient", "config.toml"))
+	path := filepath.Join(home, ".config", "synthient", "config.toml")
+	bin, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return Config{Host: "https://v3api.synthient.com/api/v3"}
+			return Config{}, nil
 		}
-		timber.Fatal(err, "failed to read from config file")
+		return Config{}, fmt.Errorf("reading from %s: %w", path, err)
 	}
 
 	var data Config
 	err = toml.Unmarshal(bin, &data)
 	if err != nil {
-		timber.Fatal(err, "failed to unmarshal toml data")
+		return Config{}, fmt.Errorf("parsing toml: %w", err)
 	}
-	return data
+
+	data.BaseApiURL, err = parseRawURL(data.endpoints.baseApi)
+	if err != nil {
+		return Config{}, fmt.Errorf("parsing base url: %w", err)
+	}
+
+	data.BaseFeedsURL, err = parseRawURL(data.endpoints.baseFeeds)
+	if err != nil {
+		return Config{}, fmt.Errorf("parsing feeds url: %w", err)
+	}
+
+	return data, nil
+}
+
+func parseRawURL(rawURL string) (*url.URL, error) {
+	if rawURL == "" {
+		return nil, nil
+	}
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("url parsing: %w", err)
+	}
+	return parsedURL, nil
 }

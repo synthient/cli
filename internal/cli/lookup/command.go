@@ -1,4 +1,4 @@
-package cli
+package lookup
 
 import (
 	"encoding/csv"
@@ -9,42 +9,38 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/cli/internal/synthient"
+	"github.com/synthient/cli/internal/utils"
+	"github.com/synthient/go-synthient"
 	"go.mattglei.ch/timber"
 )
 
-var (
-	lookupFormatFlag       string
-	lookupOutputFlag       string
-	lookupFormatFlagValues = []string{"text", "json", "csv"}
-	lookupOutput           = os.Stdout
-)
-
-var lookupCmd = &cobra.Command{
+var Command = &cobra.Command{
 	Use:   "lookup",
 	Short: "Lookup information about a given IP",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if !slices.Contains(lookupFormatFlagValues, lookupFormatFlag) {
+		if !slices.Contains(formats, flags.format) {
 			timber.ErrorMsg(
 				"invalid output flag value of",
-				lookupFormatFlag,
+				flags.format,
 				"must be either",
-				strings.Join(lookupFormatFlagValues, "|"),
+				strings.Join(formats, "|"),
 			)
 		}
-		if lookupOutputFlag != "-" {
-			file, err := os.Create(lookupOutputFlag)
+
+		out := os.Stdout
+		if flags.output != "-" {
+			file, err := os.Create(flags.output)
 			if err != nil {
-				timber.Fatal(err, "failed to create output file:", lookupOutputFlag)
+				timber.Fatal(err, "failed to create output file:", flags.output)
 			}
-			lookupOutput = file
-			defer file.Close() // nolint:errcheck
+			out = file
+			defer func() { _ = file.Close() }()
 		}
 
-		pipedIn := PipedInput()
+		pipedIn := utils.ReadPipedInput()
 		if pipedIn != "" {
 			args = strings.Fields(pipedIn)
 		}
@@ -54,25 +50,28 @@ var lookupCmd = &cobra.Command{
 			return
 		}
 
-		config := conf.Read()
-		synthientClient, err := synthient.CreateClient(config)
+		config, err := conf.Read()
 		if err != nil {
-			timber.Fatal(err, "failed to create client")
+			timber.Fatal(err, "failed to read from config file")
 		}
 
-		styles := output.NewStyles(lookupOutput)
+		client, err := auth.SynthientClient(config)
+		if err != nil {
+			timber.Fatal(err, "failed to create synthient client")
+		}
 
+		styles := output.NewStyles(out)
 		spacing := len(args) == 1
-		ips := []synthient.LookupResponse{}
+		ips := []synthient.IP{}
 		for i, ip := range args {
-			resp, err := synthientClient.LookupIP(ip)
+			resp, err := client.GetIP(ip, nil)
 			if err != nil {
 				timber.Fatal(err, "failed to lookup given IP")
 			}
 
-			switch lookupFormatFlag {
+			switch flags.format {
 			case "text":
-				resp.Output(lookupOutput, styles, spacing)
+				output.IP(resp, out, styles, spacing)
 				if !spacing && i != len(args)-1 {
 					fmt.Println()
 				}
@@ -81,15 +80,15 @@ var lookupCmd = &cobra.Command{
 			}
 		}
 
-		switch lookupFormatFlag {
+		switch flags.format {
 		case "json":
 			b, err := json.Marshal(ips)
 			if err != nil {
 				timber.Fatal(err, "failed to marshal IPs into json data")
 			}
-			output.WriteLine(lookupOutput, string(b))
+			output.WriteLine(out, string(b))
 		case "csv":
-			writer := csv.NewWriter(lookupOutput)
+			writer := csv.NewWriter(out)
 			err := writer.Write([]string{
 				"ip", "network.asn", "network.isp", "network.type", "location.city",
 				"location.state", "location.country", "location.timezone", "location.longitude",
@@ -100,16 +99,8 @@ var lookupCmd = &cobra.Command{
 				timber.Fatal(err, "failed to write csv header")
 			}
 			for _, ip := range ips {
-				ip.OutputCSV(writer)
+				output.IpCSV(ip, writer)
 			}
 		}
 	},
-}
-
-func init() {
-	lookupCmd.PersistentFlags().
-		StringVarP(&lookupOutputFlag, "output", "o", "-", "Where to write output: '-' for stdout, or a file path (e.g. 'lookup.json' or 'lookup.csv)")
-	lookupCmd.PersistentFlags().
-		StringVarP(&lookupFormatFlag, "format", "f", "text", fmt.Sprintf("Output format [%s]", strings.Join(lookupFormatFlagValues, "|")))
-	rootCmd.AddCommand(lookupCmd)
 }

@@ -1,4 +1,4 @@
-package cli
+package auth
 
 import (
 	"errors"
@@ -8,17 +8,16 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/cli/internal/synthient"
 	"github.com/zalando/go-keyring"
 	"go.mattglei.ch/timber"
 )
 
-var authCmd = &cobra.Command{
+var Command = &cobra.Command{
 	Use:   "auth",
 	Short: "Login using a Synthient API key",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		currentKey, err := synthient.ReadApiKey()
+		currentKey, err := ReadKeyring()
 		if err != nil && !errors.Is(err, keyring.ErrNotFound) {
 			timber.Fatal(err, "unexpected error when checking for existing key")
 		}
@@ -54,14 +53,10 @@ var authCmd = &cobra.Command{
 			timber.FatalMsg("Please provide valid key.")
 		}
 
-		err = synthient.StoreApiKey(key)
+		err = StoreApiKey(key)
 		if err != nil {
 			timber.Fatal(err, "failed to store API key")
 		}
 		timber.Done("Stored API key encrypted in system's keychain")
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(authCmd)
 }
