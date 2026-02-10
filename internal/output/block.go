@@ -49,7 +49,7 @@ func (b Block) Output(out *os.File, styles Styles, indentation int) {
 	if b.Name != "" {
 		WriteLine(
 			out,
-			styles.BlockHeader.PaddingLeft(indentation).Width(maxRowSize+6).
+			styles.Bold.PaddingLeft(indentation).Width(maxRowSize+6).
 				Render(b.Name),
 		)
 	}
