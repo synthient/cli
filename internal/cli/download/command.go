@@ -135,11 +135,11 @@ var Command = &cobra.Command{
 				}
 				fmt.Printf(`%s %s
 
-	   Size: %s
-	   Rate: %s/s
-	Elapsed: %s      `,
+   Size: %s
+   Rate: %s/s
+Elapsed: %s      `,
+					output.StdoutStyles.Bold.Render(fmt.Sprintf(`Downloading "%s"`, filename)),
 					output.StdoutStyles.SynthientColor.Render(spinnerFrames[spinnerIndex]),
-					output.StdoutStyles.Bold.Render(fmt.Sprintf("Downloading %s", filename)),
 					humanize.Bytes(uint64(downloadSize)),
 					humanize.Bytes(uint64(smoothBps)),
 					utils.FormatDuration(time.Since(start)),

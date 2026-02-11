@@ -6,8 +6,9 @@ import (
 )
 
 var Root = &cobra.Command{
-	Use:   "synthient",
-	Short: "Official CLI tool for Synthient [https://github.com/synthient/cli]",
+	Use:     "synthient",
+	Version: "v1.1.0",
+	Short:   "Official CLI tool for Synthient [https://github.com/synthient/cli]",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := cmd.Help()
 		if err != nil {
