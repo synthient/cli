@@ -59,15 +59,17 @@ var Command = &cobra.Command{
 
 		timber.Info("starting download")
 		fmt.Println()
-		output.Block{Name: "Query:", Values: []output.BlockValue{
-			{Key: "Provider", Value: flags.query.Provider},
-			{Key: "Type", Value: flags.query.Type},
-			{Key: "Last Observed", Value: flags.query.LastObserved},
-			{Key: "Country Code", Value: flags.query.CountryCode},
-			{Key: "Format", Value: flags.query.Format},
-			{Key: "Full", Value: flags.query.Full},
-			{Key: "Order", Value: flags.query.Order},
-		}}.Output(os.Stdout, output.StdoutStyles, 0)
+		output.Block{
+			Name: "Query:",
+			Values: []output.BlockValue{
+				{Key: "Provider", Value: flags.query.Provider},
+				{Key: "Type", Value: flags.query.Type},
+				{Key: "Last Observed", Value: flags.query.LastObserved},
+				{Key: "Country Code", Value: flags.query.CountryCode},
+				{Key: "Format", Value: flags.query.Format},
+				{Key: "Full", Value: flags.query.Full},
+				{Key: "Order", Value: flags.query.Order},
+			}}.Output(os.Stdout, output.StdoutStyles, 0)
 		fmt.Println()
 
 		var (

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,7 +18,9 @@ func main() {
 	timber.Timezone(time.Local)
 	timber.TimeFormat("03:04:05")
 	timber.ShowErrorStack(false)
-	timber.ShowFatalStack(os.Getenv("SYNTHIENT_DEBUG") == "true")
+	timber.ShowFatalStack(
+		strings.Contains(os.Args[0], "go-build") || os.Getenv("SYNTHIENT_DEBUG") == "true",
+	) // if binary is being ran with go run
 
 	commands := []*cobra.Command{
 		lookup.Command,
