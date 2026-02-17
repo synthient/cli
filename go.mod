@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/synthient/go-synthient v0.1.0
 	github.com/zalando/go-keyring v0.2.6
-	go.mattglei.ch/timber v1.6.1
+	go.mattglei.ch/timber v1.6.2
 )
 
 require (

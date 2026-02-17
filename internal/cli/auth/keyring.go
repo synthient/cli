@@ -24,6 +24,5 @@ func StoreApiKey(key string) error {
 	if err != nil {
 		return fmt.Errorf("writing api key to keyring: %w", err)
 	}
-
 	return nil
 }

@@ -13,9 +13,9 @@ import (
 )
 
 type Config struct {
-	endpoints struct {
-		baseApi   string `toml:"base_api"`
-		baseFeeds string `toml:"base_feeds"`
+	Endpoints struct {
+		BaseAPI   string `toml:"base_api"`
+		BaseFeeds string `toml:"base_feeds"`
 	} `toml:"endpoints"`
 
 	// fields that are created based on existing fields
@@ -44,12 +44,12 @@ func Read() (Config, error) {
 		return Config{}, fmt.Errorf("parsing toml: %w", err)
 	}
 
-	data.BaseApiURL, err = parseRawURL(data.endpoints.baseApi)
+	data.BaseApiURL, err = parseRawURL(data.Endpoints.BaseAPI)
 	if err != nil {
 		return Config{}, fmt.Errorf("parsing base url: %w", err)
 	}
 
-	data.BaseFeedsURL, err = parseRawURL(data.endpoints.baseFeeds)
+	data.BaseFeedsURL, err = parseRawURL(data.Endpoints.BaseFeeds)
 	if err != nil {
 		return Config{}, fmt.Errorf("parsing feeds url: %w", err)
 	}

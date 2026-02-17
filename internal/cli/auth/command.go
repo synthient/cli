@@ -21,6 +21,18 @@ var Command = &cobra.Command{
 		if err != nil && !errors.Is(err, keyring.ErrNotFound) {
 			timber.Fatal(err, "unexpected error when checking for existing key")
 		}
+		if flags.logout {
+			if currentKey == "" {
+				timber.Warning("user is not logged in, no credentials to remove")
+			} else {
+				err := StoreApiKey("")
+				if err != nil {
+					timber.Fatal(err, "failed to reset api key")
+				}
+				timber.Done("successfully logged out")
+			}
+			return
+		}
 		if currentKey != "" {
 			var overwrite bool
 			err = huh.NewConfirm().

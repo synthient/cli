@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/synthient/cli/internal/cli"
@@ -15,8 +14,7 @@ import (
 )
 
 func main() {
-	timber.Timezone(time.Local)
-	timber.TimeFormat("03:04:05")
+	timber.DisplayTime(false)
 	timber.ShowErrorStack(false)
 	timber.ShowFatalStack(
 		strings.Contains(os.Args[0], "go-build") || os.Getenv("SYNTHIENT_DEBUG") == "true",

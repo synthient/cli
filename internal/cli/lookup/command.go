@@ -59,6 +59,7 @@ var Command = &cobra.Command{
 		if err != nil {
 			timber.Fatal(err, "failed to create synthient client")
 		}
+		config.ApplyToClient(&client)
 
 		styles := output.NewStyles(out)
 		spacing := len(args) == 1
