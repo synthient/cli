@@ -16,6 +16,9 @@ import (
 func main() {
 	timber.DisplayTime(false)
 	timber.ShowErrorStack(false)
+	fatal := timber.GetLevels().Fatal
+	fatal.Message = "ERROR"
+	timber.SetFatal(fatal)
 	timber.ShowFatalStack(
 		strings.Contains(os.Args[0], "go-build") || os.Getenv("SYNTHIENT_DEBUG") == "true",
 	) // if binary is being ran with go run
