@@ -1,5 +1,7 @@
 Output lookup.gif
 
+Require synthient
+
 Set TypingSpeed 300ms
 Set FontSize 23
 Set Width 1300

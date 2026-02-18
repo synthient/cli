@@ -61,6 +61,11 @@ Flags:
 
 ### Streaming (`synthient stream`)
 
+<details>
+  <summary>DEMO VIDEO</summary>
+  <img src="./demos/stream.gif">
+</details>
+
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
 
@@ -68,9 +73,9 @@ Want to stream data from a anonymizer feed? Do this using the synthient CLI with
 
 ```bash
 synthient stream \
-   --provider BIRDPROXIES \
+   --provider IPIDEA \
    --type RESIDENTIAL_PROXY \
-   --last_observed 7D \
+   --last_observed 24hr \
    --format CSV \
    --country_code US \
    --order desc
@@ -79,6 +84,11 @@ synthient stream \
 This will then stream the data and output it to the standard out as it comes in.
 
 ### Downloading (`synthient download`)
+
+<details>
+  <summary>DEMO VIDEO</summary>
+  <img src="./demos/download.gif">
+</details>
 
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.

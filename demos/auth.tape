@@ -1,5 +1,7 @@
 Output auth.gif
 
+Require synthient
+
 Set TypingSpeed 100ms
 Set FontSize 24
 Set Width 1300

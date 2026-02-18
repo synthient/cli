@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -57,20 +58,8 @@ var Command = &cobra.Command{
 			return
 		}
 
-		timber.Info("starting download")
-		fmt.Println()
-		output.Block{
-			Name: "Query:",
-			Values: []output.BlockValue{
-				{Key: "Provider", Value: flags.query.Provider},
-				{Key: "Type", Value: flags.query.Type},
-				{Key: "Last Observed", Value: flags.query.LastObserved},
-				{Key: "Country Code", Value: flags.query.CountryCode},
-				{Key: "Format", Value: flags.query.Format},
-				{Key: "Full", Value: flags.query.Full},
-				{Key: "Order", Value: flags.query.Order},
-			}}.Output(os.Stdout, output.StdoutStyles, 0)
-		fmt.Println()
+		output.AnonymizerQuery(flags.query)
+		fmt.Print("\n\n")
 
 		var (
 			downloadSize int64
@@ -93,7 +82,7 @@ var Command = &cobra.Command{
 			}
 			spinnerIndex   = 0
 			spinnerStarted = false
-			spinnerHeight  = 4
+			spinnerHeight  = 2
 		)
 
 		ticker := time.NewTicker(50 * time.Millisecond)
@@ -135,17 +124,22 @@ var Command = &cobra.Command{
 				if spinnerIndex > len(spinnerFrames)-1 {
 					spinnerIndex = 0
 				}
-				fmt.Printf(`%s %s
-
-   Size: %s
-   Rate: %s/s
-Elapsed: %s      `,
+				out := strings.Builder{}
+				for range spinnerHeight {
+					out.WriteString("\r\033[2K\033[1A\r")
+				}
+				fmt.Fprintf(
+					&out,
+					"\n%s %s",
 					output.StdoutStyles.Bold.Render(fmt.Sprintf(`Downloading "%s"`, filename)),
 					output.StdoutStyles.SynthientColor.Render(spinnerFrames[spinnerIndex]),
-					humanize.Bytes(uint64(downloadSize)),
-					humanize.Bytes(uint64(smoothBps)),
-					utils.FormatDuration(time.Since(start)),
 				)
+				fmt.Fprintln(&out)
+				fmt.Fprintf(&out, "   Size: %s\n", humanize.Bytes(uint64(downloadSize)))
+				fmt.Fprintf(&out, "   Rate: %s/s\n", humanize.Bytes(uint64(smoothBps)))
+				fmt.Fprintf(&out, "Elapsed: %s", utils.FormatDuration(time.Since(start)))
+				fmt.Fprint(&out, "    ") // add extra padding for cursor
+				fmt.Print(out.String())
 				spinnerIndex++
 
 			case <-done:
