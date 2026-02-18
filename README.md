@@ -14,7 +14,7 @@ Synthient's official CLI tool. Currently in beta.
 
 ### `synthient auth`
 
-![auth demo tape](./demos/auth.gif)
+![auth demo video](./demos/auth.gif)
 
 Authenticate the CLI with your Synthient API key. This API key will then be stored in your system's keychain for secure storage. If you want to authenticate a different way there are two other options:
 
@@ -23,10 +23,7 @@ Authenticate the CLI with your Synthient API key. This API key will then be stor
 
 ### `synthient lookup`
 
-<details>
-  <summary>DEMO VIDEO</summary>
-  <img src="./demos/lookup.gif">
-</details>
+![lookup demo video](./demos/lookup.gif)
 
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
@@ -61,10 +58,7 @@ Flags:
 
 ### Streaming (`synthient stream`)
 
-<details>
-  <summary>DEMO VIDEO</summary>
-  <img src="./demos/stream.gif">
-</details>
+![stream demo video](./demos/stream.gif)
 
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
@@ -75,7 +69,7 @@ Want to stream data from a anonymizer feed? Do this using the synthient CLI with
 synthient stream \
    --provider IPIDEA \
    --type RESIDENTIAL_PROXY \
-   --last_observed 24hr \
+   --last_observed 24H \
    --format CSV \
    --country_code US \
    --order desc
@@ -85,10 +79,7 @@ This will then stream the data and output it to the standard out as it comes in.
 
 ### Downloading (`synthient download`)
 
-<details>
-  <summary>DEMO VIDEO</summary>
-  <img src="./demos/download.gif">
-</details>
+![download demo video](./demos/download.gif)
 
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
@@ -97,9 +88,9 @@ The same can be done for [streaming](#streaming) but instead it goes directly in
 
 ```bash
 synthient download feed.csv \
-   --provider BIRDPROXIES \
+   --provider IPIDEA \
    --type RESIDENTIAL_PROXY \
-   --last_observed 7D \
+   --last_observed 24H \
    --format CSV \
    --country_code US \
    --order desc
