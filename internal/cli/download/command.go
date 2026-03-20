@@ -41,7 +41,7 @@ var Command = &cobra.Command{
 
 		_, err = os.Stat(filename)
 		if !errors.Is(err, fs.ErrNotExist) {
-			timber.ErrorMsg(filename, "exists already")
+			timber.ErrorMsg("exists already", timber.A("file", filename))
 			os.Exit(1)
 		}
 
@@ -49,7 +49,7 @@ var Command = &cobra.Command{
 			defer close(done)
 			_, err := client.DownloadAnonymizersFeed(flags.query, filename, nil)
 			if err != nil {
-				timber.Fatal(err, "failed to download", filename)
+				timber.Fatal(err, "failed to download", timber.A("file", filename))
 			}
 		}()
 
@@ -97,7 +97,7 @@ var Command = &cobra.Command{
 					if errors.Is(err, fs.ErrNotExist) {
 						continue
 					}
-					timber.Fatal(err, "failed to check status of", filename)
+					timber.Fatal(err, "failed to check status of", timber.A("file", filename))
 				}
 				downloadSize = info.Size()
 				now := time.Now()
@@ -144,11 +144,11 @@ var Command = &cobra.Command{
 
 			case <-done:
 				clearSpinner(spinnerHeight)
-				timber.Donef(
-					"downloaded %s (%s) in %s",
-					filename,
-					humanize.Bytes(uint64(downloadSize)),
-					utils.FormatDuration(time.Since(start)),
+				timber.Done(
+					"downloaded",
+					timber.A("file", filename),
+					timber.A("size", humanize.Bytes(uint64(downloadSize))),
+					timber.A("elapsed", utils.FormatDuration(time.Since(start))),
 				)
 				return
 			}

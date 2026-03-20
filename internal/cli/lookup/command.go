@@ -23,10 +23,9 @@ var Command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if !slices.Contains(formats, flags.format) {
 			timber.ErrorMsg(
-				"invalid output flag value of",
-				flags.format,
-				"must be either",
-				strings.Join(formats, "|"),
+				"invalid output format",
+				timber.A("value", flags.format),
+				timber.A("valid", strings.Join(formats, "|")),
 			)
 		}
 
@@ -34,7 +33,7 @@ var Command = &cobra.Command{
 		if flags.output != "-" {
 			file, err := os.Create(flags.output)
 			if err != nil {
-				timber.Fatal(err, "failed to create output file:", flags.output)
+				timber.Fatal(err, "failed to create output file", timber.A("file", flags.output))
 			}
 			out = file
 			defer func() { _ = file.Close() }()
