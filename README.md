@@ -63,19 +63,11 @@ Flags:
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
 
-Want to stream data from a anonymizer feed? Do this using the synthient CLI with the following command:
+Stream anonymizer feed events as newline-delimited JSON to stdout:
 
 ```bash
-synthient stream \
-   --provider IPIDEA \
-   --type RESIDENTIAL_PROXY \
-   --last_observed 24H \
-   --format CSV \
-   --country_code US \
-   --order desc
+synthient stream
 ```
-
-This will then stream the data and output it to the standard out as it comes in.
 
 ### Downloading (`synthient download`)
 
@@ -84,16 +76,28 @@ This will then stream the data and output it to the standard out as it comes in.
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
 
-The same can be done for [streaming](#streaming) but instead it goes directly into a file. This can be done by using the `download` command with the same flags available but with the file specified as an argument (e.g. `feed.csv`):
+Download an anonymizer feed snapshot as a Parquet file. The filename argument must end in `.parquet`:
 
 ```bash
-synthient download feed.csv \
-   --provider IPIDEA \
-   --type RESIDENTIAL_PROXY \
-   --last_observed 24H \
-   --format CSV \
-   --country_code US \
-   --order desc
+synthient download anonymizers.parquet
+```
+
+To download a specific date's snapshot instead of the latest:
+
+```bash
+synthient download anonymizers.parquet --date 2026-05-14
+```
+
+Here is a full look into all of the options for the `download` command:
+
+```txt
+Usage:
+  synthient download [flags]
+
+Flags:
+  -d, --date string   Snapshot date to download (YYYY-MM-DD or 'latest') (default "latest")
+  -h, --help          help for download
+  -s, --silent        Do not output when downloading
 ```
 
 ## Configuration
