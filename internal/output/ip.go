@@ -7,9 +7,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/synthient/go-synthient"
+	"github.com/synthient/go-synthient/v2"
 	"go.mattglei.ch/timber"
 )
 
@@ -20,10 +21,10 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 	}
 
 	var categories string
-	if len(ip.IPData.Categories) == 0 {
+	if len(ip.Intelligence.Categories) == 0 {
 		categories = "None"
 	} else {
-		categories = strings.Join(ip.IPData.Categories, ", ")
+		categories = strings.Join(ip.Intelligence.Categories, ", ")
 	}
 
 	blocks := []Block{
@@ -48,11 +49,10 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 			},
 		},
 		{
-			Name: "IP Data",
+			Name: "Intelligence",
 			Values: []BlockValue{
-				{Key: "Device Count", Value: ip.IPData.DeviceCount},
 				{Key: "Categories", Value: categories},
-				{Key: "IP Risk", Value: ip.IPData.IPRisk},
+				{Key: "Risk Score", Value: ip.Intelligence.RiskScore},
 			},
 		},
 	}
@@ -64,18 +64,18 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 		}
 	}
 
-	if len(ip.IPData.Enriched) != 0 {
+	if len(ip.Intelligence.Providers) != 0 {
 		headerStyle := lipgloss.NewStyle().Bold(true).Renderer(lipgloss.NewRenderer(out))
 		if spacing {
 			WriteLine(out)
 		}
 		WriteLine(out, headerStyle.Render("Proxy Providers"))
-		for i, enrichedProxyData := range ip.IPData.Enriched {
-			WriteLine(out, fmt.Sprintf("   %d. %s", i+1, enrichedProxyData.Provider))
+		for i, provider := range ip.Intelligence.Providers {
+			WriteLine(out, fmt.Sprintf("   %d. %s", i+1, provider.Provider))
 			block := Block{
 				Values: []BlockValue{
-					{Key: "Type", Value: enrichedProxyData.Type},
-					{Key: "Last Seen", Value: enrichedProxyData.LastSeen},
+					{Key: "Type", Value: provider.Type},
+					{Key: "Last Seen", Value: time.Unix(provider.LastSeen, 0).UTC().Format(time.RFC3339)},
 				},
 			}
 			block.Output(out, styles, 5)
@@ -84,9 +84,9 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 }
 
 func IpCSV(ip synthient.IP, writer *csv.Writer) {
-	enrichedData, err := json.Marshal(ip.IPData.Enriched)
+	providersData, err := json.Marshal(ip.Intelligence.Providers)
 	if err != nil {
-		timber.Fatal(err, "failed to marshal JSON data for enriched data")
+		timber.Fatal(err, "failed to marshal JSON data for providers data")
 	}
 
 	err = writer.Write([]string{
@@ -104,10 +104,10 @@ func IpCSV(ip synthient.IP, writer *csv.Writer) {
 		strconv.FormatFloat(ip.Location.Latitude, 'f', -1, 64),
 		ip.Location.GeoHash,
 
-		strings.Join(ip.IPData.Behavior, "|"),
-		strings.Join(ip.IPData.Categories, "|"),
-		strconv.Itoa(ip.IPData.IPRisk),
-		string(enrichedData),
+		strings.Join(ip.Intelligence.Behavior, "|"),
+		strings.Join(ip.Intelligence.Categories, "|"),
+		strconv.Itoa(ip.Intelligence.RiskScore),
+		string(providersData),
 	})
 	if err != nil {
 		timber.Fatal(err, "failed to write csv row for ip")

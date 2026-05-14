@@ -39,6 +39,11 @@ var Command = &cobra.Command{
 			start    = time.Now()
 		)
 
+		if !strings.HasSuffix(filename, ".parquet") {
+			timber.ErrorMsg("file must have a .parquet extension", timber.A("file", filename))
+			os.Exit(1)
+		}
+
 		_, err = os.Stat(filename)
 		if !errors.Is(err, fs.ErrNotExist) {
 			timber.ErrorMsg("exists already", timber.A("file", filename))
@@ -47,7 +52,7 @@ var Command = &cobra.Command{
 
 		go func() {
 			defer close(done)
-			_, err := client.DownloadAnonymizersFeed(flags.query, filename, nil)
+			_, err := client.DownloadAnonymizer(flags.date, nil, filename, nil)
 			if err != nil {
 				timber.Fatal(err, "failed to download", timber.A("file", filename))
 			}
@@ -58,7 +63,6 @@ var Command = &cobra.Command{
 			return
 		}
 
-		output.AnonymizerQuery(flags.query)
 		fmt.Print("\n\n")
 
 		var (

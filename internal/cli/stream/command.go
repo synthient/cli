@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"io"
+	"encoding/json"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -24,15 +24,15 @@ var Command = &cobra.Command{
 			timber.Fatal(err, "failed to create synthient client")
 		}
 
-		s, err := client.StreamAnonymizersFeed(flags.query, nil)
-		if err != nil {
-			timber.Fatal(err, "failed to stream anonymizer feed")
-		}
-		defer func() { _ = s.Close() }()
-
-		_, err = io.Copy(os.Stdout, s)
-		if err != nil {
-			timber.Fatal(err, "failed to copy stream to stdout")
+		enc := json.NewEncoder(os.Stdout)
+		for event, err := range client.StreamAnonymizer(nil) {
+			if err != nil {
+				timber.Fatal(err, "failed to stream anonymizer feed")
+			}
+			err = enc.Encode(event)
+			if err != nil {
+				timber.Fatal(err, "failed to encode anonymizer event")
+			}
 		}
 	},
 }

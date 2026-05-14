@@ -1,6 +1,6 @@
 package conf
 
-import "github.com/synthient/go-synthient"
+import "github.com/synthient/go-synthient/v2"
 
 func (config Config) ApplyToClient(client *synthient.Client) {
 	if config.BaseApiURL != nil {

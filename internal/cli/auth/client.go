@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/synthient/cli/internal/conf"
-	"github.com/synthient/go-synthient"
+	"github.com/synthient/go-synthient/v2"
 	"github.com/zalando/go-keyring"
 	"go.mattglei.ch/timber"
 )

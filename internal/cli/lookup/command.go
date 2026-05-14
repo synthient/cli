@@ -13,7 +13,7 @@ import (
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/utils"
-	"github.com/synthient/go-synthient"
+	"github.com/synthient/go-synthient/v2"
 	"go.mattglei.ch/timber"
 )
 
@@ -92,8 +92,8 @@ var Command = &cobra.Command{
 			err := writer.Write([]string{
 				"ip", "network.asn", "network.isp", "network.type", "location.city",
 				"location.state", "location.country", "location.timezone", "location.longitude",
-				"location.latitude", "location.geohash", "ipdata.devicecount", "ipdata.behavior",
-				"ipdata.categories", "ipdata.iprisk", "ipdata.enriched",
+				"location.latitude", "location.geohash", "intelligence.behavior",
+				"intelligence.categories", "intelligence.riskscore", "intelligence.providers",
 			})
 			if err != nil {
 				timber.Fatal(err, "failed to write csv header")

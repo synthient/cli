@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/spf13/cobra v1.10.2
-	github.com/synthient/go-synthient v0.1.1
+	github.com/synthient/go-synthient/v2 v2.2.0
 	github.com/zalando/go-keyring v0.2.6
 	go.mattglei.ch/timber v1.8.2
 )
