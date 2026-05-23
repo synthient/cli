@@ -63,10 +63,18 @@ Flags:
 > [!NOTE]
 > You need to be [authenticated](#synthient-auth) to run this command.
 
-Stream anonymizer feed events as newline-delimited JSON to stdout:
+Stream feed events as newline-delimited JSON to stdout. The first argument selects the feed:
 
 ```bash
-synthient stream
+synthient stream anonymizer
+```
+
+```bash
+synthient stream torrent
+```
+
+```bash
+synthient stream proxy
 ```
 
 ### Downloading (`synthient download`)
