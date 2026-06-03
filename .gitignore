@@ -1,6 +1,8 @@
 .env
 *.csv
 *.json
+*.parquet
+*.part
 synthient
 dist
 .DS_Store

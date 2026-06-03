@@ -16,7 +16,7 @@ var (
 
 func init() {
 	Command.PersistentFlags().
-		StringVarP(&flags.output, "output", "o", "-", "Where to write output: '-' for stdout, or a file path (e.g. 'lookup.json' or 'lookup.csv)")
+		StringVarP(&flags.output, "output", "o", "-", "Where to write output: '-' for stdout, or a file path")
 	Command.PersistentFlags().
 		StringVarP(&flags.format, "format", "f", "text", fmt.Sprintf("Output format [%s]", strings.Join(formats, "|")))
 }

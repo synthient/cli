@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -17,19 +18,20 @@ var Command = &cobra.Command{
 	Short: "Login using a Synthient API key",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		styles := output.NewStyles(os.Stdout)
 		currentKey, err := ReadKeyring()
 		if err != nil && !errors.Is(err, keyring.ErrNotFound) {
 			timber.Fatal(err, "unexpected error when checking for existing key")
 		}
 		if flags.logout {
 			if currentKey == "" {
-				timber.Warning("user is not logged in, no credentials to remove")
+				output.Warn(os.Stdout, styles, "User is not logged in, no credentials to remove")
 			} else {
 				err := StoreApiKey("")
 				if err != nil {
 					timber.Fatal(err, "failed to reset api key")
 				}
-				timber.Done("successfully logged out")
+				output.Done(os.Stdout, styles, "Successfully logged out")
 			}
 			return
 		}
@@ -48,11 +50,10 @@ var Command = &cobra.Command{
 			}
 		}
 
-		fmt.Print("Please provide Synthient API key: ")
 		var key string
 		err = huh.NewInput().
 			EchoMode(huh.EchoModePassword).
-			Title("Synthient API key").
+			Title("Enter your Synthient API key").
 			Value(&key).
 			WithTheme(output.HuhTheme).
 			Run()
@@ -69,6 +70,7 @@ var Command = &cobra.Command{
 		if err != nil {
 			timber.Fatal(err, "failed to store API key")
 		}
-		timber.Done("Stored API key encrypted in system's keychain")
+		fmt.Fprint(os.Stdout, "\033[1A\033[2K")
+		output.Done(os.Stdout, styles, "Stored API key encrypted in system keychain")
 	},
 }
