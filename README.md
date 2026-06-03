@@ -70,6 +70,20 @@ SYNTHIENT_API_KEY="..."
 
 Use `synthient status` to confirm which auth source is active without printing the secret.
 
+## Demo Gallery
+
+| Status | Lookup |
+| --- | --- |
+| ![Status and auth demo](demos/auth.gif) | ![Lookup demo](demos/lookup.gif) |
+
+| Feeds | Streaming |
+| --- | --- |
+| ![Feed snapshot demo](demos/feeds.gif) | ![Proxy stream demo](demos/stream.gif) |
+
+| Download | gRPC Schemas |
+| --- | --- |
+| ![Snapshot download demo](demos/download.gif) | ![gRPC schema demo](demos/grpc.gif) |
+
 ## Quick Start
 
 Check configuration, authentication, quota, and scopes:
