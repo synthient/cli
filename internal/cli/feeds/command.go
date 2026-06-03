@@ -3,7 +3,6 @@ package feeds
 import (
 	"encoding/csv"
 	"fmt"
-	"net/url"
 	"os"
 	"slices"
 	"strconv"
@@ -93,24 +92,14 @@ var SnapshotsCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		path, err := feed.ExportPath(client.BaseAPI, stream)
-		if err != nil {
-			app.Fatal(err, "failed to build feed snapshot list request")
-		}
-		reqURL, err := url.Parse(path)
-		if err != nil {
-			app.Fatal(err, "failed to parse feed snapshot list request")
-		}
-		q := reqURL.Query()
+		opts := &synthient.FeedSnapshotsOptions{}
 		if flags.limit > 0 {
-			q.Set("limit", strconv.Itoa(flags.limit))
+			opts.Limit = flags.limit
 		}
 		if flags.cursor != "" {
-			q.Set("cursor", flags.cursor)
+			opts.Cursor = flags.cursor
 		}
-		reqURL.RawQuery = q.Encode()
-
-		page, err := feed.GetJSON[synthient.FeedSnapshotsPage](client, reqURL.String())
+		page, err := client.FeedSnapshots(stream.Name, opts, nil)
 		if err != nil {
 			app.Fatal(err, "failed to list feed snapshots")
 		}
@@ -166,7 +155,7 @@ var MetaCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := feed.SnapshotMeta(client, stream, args[1])
+		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot metadata")
 		}
@@ -224,7 +213,7 @@ var SchemaCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := feed.SnapshotMeta(client, stream, args[1])
+		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot schema")
 		}
@@ -265,7 +254,7 @@ var ChecksumCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := feed.SnapshotMeta(client, stream, args[1])
+		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot checksum")
 		}

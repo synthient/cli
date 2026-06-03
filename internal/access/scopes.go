@@ -2,7 +2,6 @@ package access
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/synthient/cli/internal/feed"
 	"github.com/synthient/go-synthient/v2"
@@ -75,23 +74,9 @@ func Require(client synthient.Client, required string) error {
 	if required == "" {
 		return nil
 	}
-	path, err := feed.Path(client.BaseAPI, "account", "me")
-	if err != nil {
-		return err
-	}
-	req, err := feed.NewRequest(client, http.MethodGet, path, nil)
-	if err != nil {
-		return err
-	}
-	resp, err := feed.Do(client, req, http.StatusOK)
+	account, err := client.GetAccount(nil)
 	if err != nil {
 		return nil
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	account, err := feed.DecodeJSON[synthient.Account](resp.Body)
-	if err != nil {
-		return err
 	}
 	if !Has(account.Scopes, required) {
 		return MissingScopeError{Scope: required}

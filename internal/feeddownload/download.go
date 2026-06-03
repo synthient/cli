@@ -3,6 +3,7 @@ package feeddownload
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"math"
 	"os"
@@ -54,7 +55,7 @@ func Run(opts Options) (Result, error) {
 	start := time.Now()
 	done := make(chan downloadResult, 1)
 	go func() {
-		size, err := feed.DownloadSnapshot(opts.Client, opts.Stream, opts.Snapshot, opts.Filename, opts.Force)
+		size, err := downloadSnapshot(opts)
 		done <- downloadResult{Size: size, Err: err}
 	}()
 
@@ -90,7 +91,7 @@ func getMeta(opts Options, progress bool) (synthient.FeedSnapshotMeta, bool, err
 	if !opts.Verify && !progress {
 		return synthient.FeedSnapshotMeta{}, false, nil
 	}
-	meta, err := feed.SnapshotMeta(opts.Client, opts.Stream, opts.Snapshot)
+	meta, err := opts.Client.FeedSnapshotMeta(opts.Stream.Name, opts.Snapshot, nil)
 	if err != nil {
 		if opts.Verify {
 			return synthient.FeedSnapshotMeta{}, false, fmt.Errorf("getting feed snapshot metadata: %w", err)
@@ -98,6 +99,57 @@ func getMeta(opts Options, progress bool) (synthient.FeedSnapshotMeta, bool, err
 		return synthient.FeedSnapshotMeta{}, false, nil
 	}
 	return meta, true, nil
+}
+
+func downloadSnapshot(opts Options) (int64, error) {
+	if !strings.HasSuffix(opts.Filename, ".parquet") {
+		return 0, fmt.Errorf("file must have a .parquet extension")
+	}
+	_, statErr := os.Stat(opts.Filename)
+	if statErr == nil && !opts.Force {
+		return 0, fmt.Errorf("file exists already")
+	}
+	if statErr != nil && !errors.Is(statErr, fs.ErrNotExist) {
+		return 0, statErr
+	}
+
+	date, hour, err := feed.SnapshotDateHour(opts.Snapshot)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := opts.Client.DownloadFeedSnapshot(opts.Stream.Name, date, hour, "", nil)
+	if err != nil {
+		return 0, err
+	}
+	defer func() { _ = r.Close() }()
+
+	tmp := opts.Filename + ".part"
+	_ = os.Remove(tmp)
+	file, err := os.Create(tmp)
+	if err != nil {
+		return 0, fmt.Errorf("creating file: %w", err)
+	}
+
+	size, copyErr := io.Copy(file, r)
+	closeErr := file.Close()
+	if copyErr != nil {
+		_ = os.Remove(tmp)
+		return 0, fmt.Errorf("writing snapshot: %w", copyErr)
+	}
+	if closeErr != nil {
+		_ = os.Remove(tmp)
+		return 0, fmt.Errorf("closing snapshot file: %w", closeErr)
+	}
+	if opts.Force {
+		_ = os.Remove(opts.Filename)
+	}
+	err = os.Rename(tmp, opts.Filename)
+	if err != nil {
+		_ = os.Remove(tmp)
+		return 0, fmt.Errorf("moving snapshot into place: %w", err)
+	}
+	return size, nil
 }
 
 func finish(opts Options, meta synthient.FeedSnapshotMeta, download downloadResult, start time.Time) (Result, error) {

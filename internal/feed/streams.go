@@ -1,8 +1,6 @@
 package feed
 
 import (
-	"fmt"
-	"net/url"
 	"slices"
 	"strings"
 )
@@ -83,19 +81,4 @@ func Names() string {
 		names = append(names, stream.Name)
 	}
 	return strings.Join(names, "|")
-}
-
-func Path(base url.URL, parts ...string) (string, error) {
-	path, err := url.JoinPath(base.String(), parts...)
-	if err != nil {
-		return "", fmt.Errorf("creating request path: %w", err)
-	}
-	return path, nil
-}
-
-func ExportPath(base url.URL, stream Stream, parts ...string) (string, error) {
-	segments := append([]string{}, stream.Path...)
-	segments = append(segments, "export")
-	segments = append(segments, parts...)
-	return Path(base, segments...)
 }

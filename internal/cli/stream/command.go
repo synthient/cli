@@ -1,14 +1,13 @@
 package stream
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"iter"
 	"math"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -69,10 +68,13 @@ var Command = &cobra.Command{
 		}
 
 		if !flags.reconnect {
-			result := streamOnce(ctx, client, stream, out, flags.maxEvents)
-			err = result.Err
-			if err != nil {
-				app.Fatal(err, "failed to stream feed")
+			seq, buildErr := buildSeq(ctx, &client, stream)
+			if buildErr != nil {
+				app.Fatal(buildErr, "failed to initialize stream")
+			}
+			result := streamOnce(ctx, seq, out, flags.maxEvents)
+			if result.Err != nil {
+				app.Fatal(result.Err, "failed to stream feed")
 			}
 			return
 		}
@@ -87,7 +89,11 @@ var Command = &cobra.Command{
 					return
 				}
 			}
-			result := streamOnce(ctx, client, stream, out, remaining)
+			seq, buildErr := buildSeq(ctx, &client, stream)
+			if buildErr != nil {
+				app.Fatal(buildErr, "failed to initialize stream")
+			}
+			result := streamOnce(ctx, seq, out, remaining)
 			total += result.Count
 			if result.Done {
 				return
@@ -97,8 +103,10 @@ var Command = &cobra.Command{
 				attempt = 0
 				continue
 			}
-			var statusErr feed.StatusError
-			if errors.As(err, &statusErr) && statusErr.StatusCode >= 400 && statusErr.StatusCode < 500 {
+			if errors.Is(err, synthient.ErrBadRequest) ||
+				errors.Is(err, synthient.ErrUnauthorized) ||
+				errors.Is(err, synthient.ErrPaymentRequired) ||
+				errors.Is(err, synthient.ErrNoToken) {
 				app.Fatal(err, "failed to stream feed")
 			}
 			delay := retryDelay(attempt)
@@ -119,35 +127,49 @@ type streamResult struct {
 	Err   error
 }
 
-func streamOnce(ctx context.Context, client synthient.Client, stream feed.Stream, out *os.File, maxEvents int) streamResult {
-	segments := append([]string{}, stream.Path...)
-	segments = append(segments, "stream")
-	path, err := feed.Path(client.BaseAPI, segments...)
-	if err != nil {
-		return streamResult{Err: err}
+func buildSeq(ctx context.Context, client *synthient.Client, s feed.Stream) (iter.Seq2[json.RawMessage, error], error) {
+	opts := &synthient.RequestOptions{Context: ctx}
+	switch s.Name {
+	case "proxies":
+		return toRaw(client.StreamProxy(opts)), nil
+	case "anonymizers":
+		return toRaw(client.StreamAnonymizer(opts)), nil
+	case "torrents":
+		return toRaw(client.StreamTorrent(opts)), nil
+	case "honeypot_http":
+		return toRaw(client.StreamHeliosHTTP(opts)), nil
+	case "honeypot_https":
+		return toRaw(client.StreamHeliosTLS(opts)), nil
+	default:
+		return nil, fmt.Errorf("real-time stream not supported for %q", s.Name)
 	}
-	req, err := feed.NewRequest(client, http.MethodGet, path, nil)
-	if err != nil {
-		return streamResult{Err: err}
-	}
-	req = req.WithContext(ctx)
-	resp, err := feed.Do(client, req, http.StatusOK)
-	if err != nil {
-		if ctx.Err() != nil {
-			return streamResult{Done: true}
-		}
-		return streamResult{Err: err}
-	}
-	defer func() { _ = resp.Body.Close() }()
+}
 
-	scanner := bufio.NewScanner(resp.Body)
-	scanner.Buffer(make([]byte, 64*1024), 16*1024*1024)
-	count := 0
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
+func toRaw[T any](seq iter.Seq2[T, error]) iter.Seq2[json.RawMessage, error] {
+	return func(yield func(json.RawMessage, error) bool) {
+		for event, err := range seq {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			b, marshalErr := json.Marshal(event)
+			if !yield(b, marshalErr) {
+				return
+			}
 		}
+	}
+}
+
+func streamOnce(ctx context.Context, seq iter.Seq2[json.RawMessage, error], out *os.File, maxEvents int) streamResult {
+	count := 0
+	for raw, err := range seq {
+		if err != nil {
+			if ctx.Err() != nil {
+				return streamResult{Count: count, Done: true}
+			}
+			return streamResult{Count: count, Err: err}
+		}
+		line := string(raw)
 		event, err := parseEvent(line)
 		if err != nil {
 			return streamResult{Count: count, Err: err}
@@ -163,12 +185,6 @@ func streamOnce(ctx context.Context, client synthient.Client, stream feed.Stream
 		if maxEvents > 0 && count >= maxEvents {
 			return streamResult{Count: count, Done: true}
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		if ctx.Err() != nil {
-			return streamResult{Count: count, Done: true}
-		}
-		return streamResult{Count: count, Err: err}
 	}
 	return streamResult{Count: count}
 }
