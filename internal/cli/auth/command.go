@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -69,6 +70,7 @@ var Command = &cobra.Command{
 		if err != nil {
 			timber.Fatal(err, "failed to store API key")
 		}
+		fmt.Fprint(os.Stdout, "\033[1A\033[2K")
 		output.Done(os.Stdout, styles, "Stored API key encrypted in system keychain")
 	},
 }
