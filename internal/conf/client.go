@@ -10,3 +10,10 @@ func (config Config) ApplyToClient(client *synthient.Client) {
 		client.BaseFeeds = *config.BaseFeedsURL
 	}
 }
+
+func (config Config) GRPCEndpoint(defaultEndpoint string) string {
+	if config.Endpoints.BaseGRPC != "" {
+		return config.Endpoints.BaseGRPC
+	}
+	return defaultEndpoint
+}

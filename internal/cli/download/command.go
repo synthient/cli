@@ -1,167 +1,91 @@
 package download
 
 import (
-	"errors"
 	"fmt"
-	"io/fs"
-	"math"
 	"os"
-	"strings"
-	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/access"
+	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
-	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/cli/internal/utils"
+	"github.com/synthient/cli/internal/feed"
+	"github.com/synthient/cli/internal/feeddownload"
+	"github.com/synthient/cli/internal/options"
 	"go.mattglei.ch/timber"
 )
 
 var Command = &cobra.Command{
-	Use:   "download",
-	Short: "Download an anonymizer feed to a file",
-	Args:  cobra.ExactArgs(1),
+	Use:   "download [stream] [snapshot] <file>",
+	Short: "Download a feed snapshot to a Parquet file",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) >= 1 && len(args) <= 3 {
+			return nil
+		}
+		return fmt.Errorf("accepts <file>, <stream> <file>, or <stream> <snapshot> <file>")
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		config, err := conf.Read()
 		if err != nil {
-			timber.Fatal(err, "failed to read configuration file")
+			app.Fatal(err, "failed to read configuration file")
 		}
 
 		client, err := auth.SynthientClient(config)
 		if err != nil {
-			timber.Fatal(err, "failed to create synthient client")
+			app.Fatal(err, "failed to create synthient client")
 		}
+		config.ApplyToClient(&client)
 
 		var (
-			done     = make(chan struct{})
-			filename = args[0]
-			start    = time.Now()
+			streamName = "anonymizers"
+			filename   = args[0]
+			snapshot   = snapshotFromFlags()
 		)
-
-		if !strings.HasSuffix(filename, ".parquet") {
-			timber.ErrorMsg("file must have a .parquet extension", timber.A("file", filename))
-			os.Exit(1)
+		if len(args) == 2 {
+			streamName = args[0]
+			filename = args[1]
+		} else if len(args) == 3 {
+			streamName = args[0]
+			snapshot = args[1]
+			filename = args[2]
+		}
+		stream, ok := feed.Find(streamName)
+		if !ok {
+			timber.FatalMsg("unknown stream", timber.A("value", streamName), timber.A("valid", feed.Names()))
 		}
 
-		_, err = os.Stat(filename)
-		if !errors.Is(err, fs.ErrNotExist) {
-			timber.ErrorMsg("exists already", timber.A("file", filename))
-			os.Exit(1)
-		}
-
-		go func() {
-			defer close(done)
-			_, err := client.DownloadAnonymizer(flags.date, nil, filename, nil)
+		if !flags.noPreflight {
+			err = access.Require(client, access.Required(stream, "feed"))
 			if err != nil {
-				timber.Fatal(err, "failed to download", timber.A("file", filename))
+				app.Fatal(err, "failed feed access preflight")
 			}
-		}()
-
-		if flags.silent {
-			<-done
-			return
 		}
 
-		fmt.Print("\n\n")
-
-		var (
-			downloadSize int64
-			prevSize     int64
-			prevTime     = time.Now()
-			smoothBps    float64
-			halfLife     = 6 * time.Second
-
-			spinnerFrames = []string{
-				"[=    ]",
-				"[==   ]",
-				"[ === ]",
-				"[  ===]",
-				"[   ==]",
-				"[    =]",
-				"[   ==]",
-				"[  ===]",
-				"[ === ]",
-				"[==   ]",
-			}
-			spinnerIndex   = 0
-			spinnerStarted = false
-			spinnerHeight  = 2
-		)
-
-		ticker := time.NewTicker(50 * time.Millisecond)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-
-				info, err := os.Stat(filename)
-				if err != nil {
-					if errors.Is(err, fs.ErrNotExist) {
-						continue
-					}
-					timber.Fatal(err, "failed to check status of", timber.A("file", filename))
-				}
-				downloadSize = info.Size()
-				now := time.Now()
-
-				dt := now.Sub(prevTime)
-				if dt > 0 {
-					delta := max(downloadSize-prevSize, 0)
-					instBps := float64(delta) / dt.Seconds()
-					alpha := 1 - math.Exp(-float64(dt)/float64(halfLife))
-					if smoothBps == 0 {
-						smoothBps = instBps
-					} else {
-						smoothBps += alpha * (instBps - smoothBps)
-					}
-				}
-				prevSize = downloadSize
-				prevTime = now
-
-				if spinnerStarted {
-					clearSpinner(spinnerHeight)
-				} else {
-					spinnerStarted = true
-				}
-				if spinnerIndex > len(spinnerFrames)-1 {
-					spinnerIndex = 0
-				}
-				out := strings.Builder{}
-				for range spinnerHeight {
-					out.WriteString("\r\033[2K\033[1A\r")
-				}
-				fmt.Fprintf(
-					&out,
-					"\n%s %s",
-					output.StdoutStyles.Bold.Render(fmt.Sprintf(`Downloading "%s"`, filename)),
-					output.StdoutStyles.SynthientColor.Render(spinnerFrames[spinnerIndex]),
-				)
-				fmt.Fprintln(&out)
-				fmt.Fprintf(&out, "   Size: %s\n", humanize.Bytes(uint64(downloadSize)))
-				fmt.Fprintf(&out, "   Rate: %s/s\n", humanize.Bytes(uint64(smoothBps)))
-				fmt.Fprintf(&out, "Elapsed: %s", utils.FormatDuration(time.Since(start)))
-				fmt.Fprint(&out, "    ") // add extra padding for cursor
-				fmt.Print(out.String())
-				spinnerIndex++
-
-			case <-done:
-				clearSpinner(spinnerHeight)
-				timber.Done(
-					"downloaded",
-					timber.A("file", filename),
-					timber.A("size", humanize.Bytes(uint64(downloadSize))),
-					timber.A("elapsed", utils.FormatDuration(time.Since(start))),
-				)
-				return
-			}
+		_, err = feeddownload.Run(feeddownload.Options{
+			Client:   client,
+			Stream:   stream,
+			Snapshot: snapshot,
+			Filename: filename,
+			Force:    flags.force,
+			Verify:   flags.verify,
+			Quiet:    options.Quiet || flags.silent,
+			Out:      os.Stdout,
+		})
+		if err != nil {
+			app.Fatal(err, "failed to download", timber.A("file", filename), timber.A("stream", stream.Name))
 		}
 	},
 }
 
-func clearSpinner(height int) {
-	for range height {
-		fmt.Print("\r\033[2K\033[1A\r")
+func snapshotFromFlags() string {
+	if flags.hour < 0 {
+		return flags.date
 	}
+	if flags.hour > 23 {
+		timber.FatalMsg("hour must be between 0 and 23", timber.A("hour", flags.hour))
+	}
+	if flags.date == "latest" {
+		timber.FatalMsg("hour cannot be used with latest snapshot")
+	}
+	return fmt.Sprintf("%s/%d", flags.date, flags.hour)
 }
