@@ -12,8 +12,8 @@ import (
 	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
-	schema "github.com/synthient/cli/internal/grpcschema"
 	"github.com/synthient/cli/internal/output"
+	"github.com/synthient/go-synthient/v2"
 	"go.mattglei.ch/timber"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -56,28 +56,32 @@ var SchemaCommand = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to read configuration file")
 		}
+
+		client, err := auth.SynthientClient(config)
+		if err != nil {
+			app.Fatal(err, "failed to create synthient client")
+		}
+		config.ApplyToClient(&client)
+
 		endpoint := strings.TrimSpace(flags.endpoint)
 		if endpoint == "" {
-			endpoint = config.GRPCEndpoint(schema.DefaultEndpoint)
-		}
-
-		credentials, err := auth.ReadCredentials()
-		if err != nil {
-			app.Fatal(err, "failed to read credentials")
+			endpoint = config.GRPCEndpoint(synthient.DefaultGRPCEndpoint)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), flags.timeout)
 		defer cancel()
 
-		result, err := schema.Fetch(ctx, schema.Options{
+		result, err := client.GRPCSchema(ctx, &synthient.GRPCSchemaOptions{
 			Endpoint:          endpoint,
-			APIKey:            credentials.Key,
 			Plaintext:         flags.plaintext,
 			IncludeReflection: flags.includeReflection,
 			Symbols:           args,
 		})
 		if err != nil {
-			fatalSchema(err)
+			if msg := synthient.ExplainGRPCError(err); msg != "" {
+				timber.FatalMsg(msg)
+			}
+			app.Fatal(err, "failed to fetch protobuf schemas")
 		}
 
 		out, closeOut := output.Open(flags.output)
@@ -106,13 +110,6 @@ func init() {
 	Command.AddCommand(SchemaCommand)
 }
 
-func fatalSchema(err error) {
-	if text := schema.Explain(err); text != "" {
-		timber.FatalMsg(text)
-	}
-	app.Fatal(err, "failed to fetch protobuf schemas")
-}
-
 func writeBytes(out *os.File, data []byte) {
 	_, err := out.Write(data)
 	if err != nil {
@@ -120,7 +117,7 @@ func writeBytes(out *os.File, data []byte) {
 	}
 }
 
-func writeText(out *os.File, styles output.Styles, result schema.Result) {
+func writeText(out *os.File, styles output.Styles, result synthient.GRPCSchemaResult) {
 	output.Header(out, styles, "Protobuf Schema", result.Endpoint)
 	output.Divider(out, styles)
 	blocks := []output.Block{

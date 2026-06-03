@@ -11,7 +11,6 @@ import (
 	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
-	"github.com/synthient/cli/internal/grpcschema"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/go-synthient/v2"
 	"go.mattglei.ch/timber"
@@ -54,7 +53,7 @@ var Command = &cobra.Command{
 			AuthSource:   auth.ReadCredentialsStatus().Source,
 			BaseAPI:      defaultClient.BaseAPI.String(),
 			BaseFeeds:    defaultClient.BaseFeeds.String(),
-			BaseGRPC:     config.GRPCEndpoint(grpcschema.DefaultEndpoint),
+			BaseGRPC:     config.GRPCEndpoint(synthient.DefaultGRPCEndpoint),
 			AccountError: "",
 		}
 		client, err := auth.SynthientClient(config)
@@ -86,7 +85,7 @@ var Command = &cobra.Command{
 		if config.BaseFeedsURL != nil {
 			result.BaseFeeds = config.BaseFeedsURL.String()
 		}
-		result.BaseGRPC = config.GRPCEndpoint(grpcschema.DefaultEndpoint)
+		result.BaseGRPC = config.GRPCEndpoint(synthient.DefaultGRPCEndpoint)
 
 		out, closeOut := output.Open(flags.output)
 		defer closeOut()
