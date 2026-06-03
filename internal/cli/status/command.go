@@ -46,21 +46,29 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to read configuration file")
 		}
-		defaultClient := synthient.NewClient("")
+		defaults := synthient.NewClient("")
+		baseAPI := defaults.BaseAPI.String()
+		baseFeeds := defaults.BaseFeeds.String()
+		if config.BaseApiURL != nil {
+			baseAPI = config.BaseApiURL.String()
+		}
+		if config.BaseFeedsURL != nil {
+			baseFeeds = config.BaseFeedsURL.String()
+		}
+
 		result := Result{
 			ConfigPath:   config.Path,
 			Profile:      config.Profile,
 			AuthSource:   auth.ReadCredentialsStatus().Source,
-			BaseAPI:      defaultClient.BaseAPI.String(),
-			BaseFeeds:    defaultClient.BaseFeeds.String(),
+			BaseAPI:      baseAPI,
+			BaseFeeds:    baseFeeds,
 			BaseGRPC:     config.GRPCEndpoint(synthient.DefaultGRPCEndpoint),
 			AccountError: "",
 		}
+
 		client, err := auth.SynthientClient(config)
 		if err == nil {
 			config.ApplyToClient(&client)
-			result.BaseAPI = client.BaseAPI.String()
-			result.BaseFeeds = client.BaseFeeds.String()
 			account, accountErr := client.GetAccount(nil)
 			if accountErr == nil {
 				result.Authenticated = true
@@ -79,13 +87,6 @@ var Command = &cobra.Command{
 		} else {
 			result.AccountError = app.Explain(err)
 		}
-		if config.BaseApiURL != nil {
-			result.BaseAPI = config.BaseApiURL.String()
-		}
-		if config.BaseFeedsURL != nil {
-			result.BaseFeeds = config.BaseFeedsURL.String()
-		}
-		result.BaseGRPC = config.GRPCEndpoint(synthient.DefaultGRPCEndpoint)
 
 		out, closeOut := output.Open(flags.output)
 		defer closeOut()
