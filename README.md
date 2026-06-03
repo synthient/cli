@@ -9,7 +9,6 @@ The CLI is built for developers and automation:
 - Production Synthient endpoints by default. No config file is required for normal usage.
 - Optional config profiles for custom endpoint routing.
 - Live NDJSON feed streaming with filters, reconnects, duration limits, and event limits.
-- Deterministic demo recording workflow using VHS, with API keys supplied only through the environment.
 
 ## Install
 
@@ -70,24 +69,6 @@ SYNTHIENT_API_KEY="..."
 ```
 
 Use `synthient status` to confirm which auth source is active without printing the secret.
-
-## Demo Gallery
-
-The demos are recorded against the production Synthient API using the CLI defaults. The API key is supplied at record time through `SYNTHIENT_API_KEY`; it is not stored in the tapes, README, or generated media.
-
-| Status | Lookup |
-| --- | --- |
-| ![Status and auth demo](demos/auth.gif) | ![Lookup demo](demos/lookup.gif) |
-
-| Feeds | Streaming |
-| --- | --- |
-| ![Feed snapshot demo](demos/feeds.gif) | ![Proxy stream demo](demos/stream.gif) |
-
-| Download | gRPC Schemas |
-| --- | --- |
-| ![Snapshot download demo](demos/download.gif) | ![gRPC schema demo](demos/grpc.gif) |
-
-MP4 versions are available alongside the GIFs in `demos/*.mp4`.
 
 ## Quick Start
 
@@ -640,51 +621,6 @@ synthient grpc schema synthient.v1.SynthientService \
   --output synthient.protoset
 ```
 
-## Recording Demos
-
-Demo assets are generated with VHS against production Synthient endpoints using the default CLI configuration.
-
-Install recording dependencies on macOS:
-
-```bash
-brew install charmbracelet/tap/vhs ffmpeg jq
-```
-
-Regenerate GIF and MP4 assets:
-
-```bash
-export SYNTHIENT_API_KEY="..."
-./demos/record.sh
-```
-
-The script:
-
-- Builds `dist/synthient` from the local checkout.
-- Prepends `dist` to `PATH`.
-- Forces truecolor terminal rendering for VHS.
-- Records `auth`, `lookup`, `feeds`, `stream`, `download`, and `grpc` tapes.
-- Converts each GIF to MP4 with `ffmpeg`.
-- Removes temporary `.parquet` and `.part` files.
-- Fails if any expected media asset is missing or empty.
-
-Recording files:
-
-| File | Purpose |
-| --- | --- |
-| `demos/auth.tape` | Status and auth-source output |
-| `demos/lookup.tape` | IP, batch IP, CSV, and domain lookup |
-| `demos/feeds.tape` | Streams, snapshots, schema, and checksum |
-| `demos/stream.tape` | Five-second residential proxy stream capture |
-| `demos/download.tape` | Proxy snapshot download progress animation |
-| `demos/grpc.tape` | gRPC schema introspection |
-
-Before committing regenerated media, scan for accidental secret or config leakage:
-
-```bash
-rg "<real-api-key>|SYNTHIENT_API_KEY|secret|password|token" README.md demos
-strings demos/*.gif demos/*.mp4 | rg "SYNTHIENT_API_KEY|secret|token" || true
-```
-
 ## Local Development
 
 Run the CLI from source:
@@ -706,20 +642,12 @@ go test ./...
 go vet ./...
 ```
 
-Validate VHS tapes:
-
-```bash
-vhs validate demos/*.tape
-```
-
 Full local audit:
 
 ```bash
 go test ./...
 go vet ./...
 go build -o /tmp/synthient-cli ./cmd
-vhs validate demos/*.tape
-rg "SYNTHIENT_API_KEY|secret|password|token" README.md demos internal cmd
 ```
 
 Smoke-check production commands with a live key:
