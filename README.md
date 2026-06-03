@@ -366,8 +366,8 @@ Current stream names:
 | `torrents` | `torrent` | DHT and tracker peer sightings |
 | `honeypot_http` | `helios_http`, `http` | HTTP request captures from Helios sensors |
 | `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors |
-| `honeypot_dns` | `helios_dns`, `dns` | DNS resolution observations from Helios tunnels |
-| `honeypot_adb` | `helios_adb`, `adb` | Android Debug Bridge shell commands captured by Helios sensors |
+| `honeypot_dns` | `helios_dns`, `dns` | DNS resolution observations from Helios tunnels (snapshots only, no live stream) |
+| `honeypot_adb` | `helios_adb`, `adb` | Android Debug Bridge shell commands captured by Helios sensors (snapshots only, no live stream) |
 
 List snapshots:
 
@@ -511,7 +511,7 @@ synthient stream proxies \
 Nested fields can be addressed with dot notation:
 
 ```bash
-synthient stream proxies --filter network.asn=15169 --max-events 10
+synthient stream proxies --filter asn=15169 --max-events 10
 ```
 
 Because stream output is NDJSON, it is safe to pipe directly into `jq`, log processors, and queue producers:
