@@ -15,6 +15,7 @@ import (
 	"github.com/synthient/cli/internal/cli/scopes"
 	"github.com/synthient/cli/internal/cli/status"
 	"github.com/synthient/cli/internal/cli/stream"
+	"github.com/synthient/cli/internal/update"
 	"go.mattglei.ch/timber"
 )
 
@@ -44,5 +45,7 @@ func main() {
 		cli.Root.AddCommand(command)
 	}
 
+	updateCheck := update.StartBackgroundCheck()
 	_ = cli.Root.Execute()
+	update.Notify(cli.Root.Version, updateCheck)
 }
