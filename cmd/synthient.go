@@ -12,6 +12,7 @@ import (
 	"github.com/synthient/cli/internal/cli/feeds"
 	"github.com/synthient/cli/internal/cli/grpcschema"
 	"github.com/synthient/cli/internal/cli/lookup"
+	"github.com/synthient/cli/internal/cli/mcp"
 	"github.com/synthient/cli/internal/cli/scopes"
 	"github.com/synthient/cli/internal/cli/status"
 	"github.com/synthient/cli/internal/cli/stream"
@@ -35,6 +36,7 @@ func main() {
 		auth.Command,
 		feeds.Command,
 		grpcschema.Command,
+		mcp.Command,
 		scopes.Command,
 		status.Command,
 		stream.Command,
