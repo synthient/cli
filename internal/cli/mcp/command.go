@@ -33,7 +33,7 @@ var Command = &cobra.Command{
 			timber.FatalMsg("unsupported transport", timber.A("value", flags.transport), timber.A("valid", "stdio"))
 		}
 
-		err = run(cmd.Context(), client)
+		err = run(cmd.Context(), config, client)
 		if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, context.Canceled) {
 			app.Fatal(err, "mcp server exited with an error")
 		}
