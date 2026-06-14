@@ -9,6 +9,7 @@ The CLI is built for developers and automation:
 - Production Synthient endpoints by default. No config file is required for normal usage.
 - Optional config profiles for custom endpoint routing.
 - Live NDJSON feed streaming with filters, reconnects, duration limits, and event limits.
+- A built-in Model Context Protocol (MCP) server that exposes Synthient lookups, feeds, and schemas as tools for MCP-compatible clients.
 
 ## Install
 
@@ -172,6 +173,7 @@ synthient
   download             Convenience wrapper for snapshot downloads
   stream               Stream live NDJSON feed events
   grpc schema          Output protobuf descriptors using gRPC reflection
+  mcp                  Run a Model Context Protocol server over stdio
 ```
 
 ## Output Modes
@@ -572,6 +574,70 @@ Flags:
 | `--plaintext` | Connect without TLS |
 | `--include-reflection` | Include gRPC reflection descriptors in output |
 
+## MCP Server
+
+`synthient mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server that exposes Synthient lookups, feed metadata, live samples, and schemas as tools for MCP-compatible clients such as Claude Desktop. The server communicates over stdio.
+
+Start the server:
+
+```bash
+synthient mcp
+```
+
+The server authenticates with the same credential lookup order as the rest of the CLI (`SYNTHIENT_API_KEY`, `.env`, then the OS keychain) and exits at startup if no key is found.
+
+Exposed tools:
+
+| Tool | Purpose |
+| --- | --- |
+| `lookup_ip` | Look up intelligence for one or more IP addresses |
+| `lookup_domain` | Look up domain intelligence from Helios observations |
+| `get_account` | Report organization, scopes, and lookup quota |
+| `list_feed_streams` | List available feed streams with descriptions and aliases |
+| `list_feed_snapshots` | List Parquet snapshots for a stream, with pagination |
+| `feed_snapshot_meta` | Return snapshot metadata, checksum, size, row count, and schema |
+| `sample_stream` | Collect a bounded sample of live events from a real-time feed |
+| `grpc_schema` | Fetch protobuf descriptors through gRPC reflection |
+
+Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover the streams that support those surfaces; the honeypot DNS and ADB feeds are snapshot-only and have no live sample.
+
+Flags:
+
+| Flag | Purpose |
+| --- | --- |
+| `--transport <stdio>` | Transport the server listens on; only `stdio` is supported |
+
+### Claude Desktop
+
+Add the server to `claude_desktop_config.json` (on macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "synthient": {
+      "command": "synthient",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Use an absolute path to the binary if `synthient` is not on the launcher's `PATH` (for example `/Users/you/go/bin/synthient`). The keychain credential is used automatically. To authenticate from the environment instead, add an `env` block:
+
+```json
+{
+  "mcpServers": {
+    "synthient": {
+      "command": "synthient",
+      "args": ["mcp"],
+      "env": { "SYNTHIENT_API_KEY": "..." }
+    }
+  }
+}
+```
+
+Fully quit and reopen Claude Desktop after editing the config so it relaunches the server.
+
 ## Shell Completion
 
 Generate completion scripts through Cobra:
@@ -719,4 +785,10 @@ gRPC schema connection fails:
 
 ```txt
 Check the endpoint, TLS mode, and timeout. Use --plaintext only for local or explicitly plaintext reflection servers.
+```
+
+MCP server tools do not appear in the client:
+
+```txt
+Confirm the command path resolves, fully restart the client so it relaunches the server, and check that the binary is current (synthient --version). Older binaries may not expose every tool.
 ```
