@@ -11,7 +11,7 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/spf13/cobra v1.10.2
-	github.com/synthient/go-synthient/v2 v2.3.0
+	github.com/synthient/go-synthient/v2 v2.3.1
 	github.com/zalando/go-keyring v0.2.6
 	go.mattglei.ch/timber v1.8.2
 	google.golang.org/protobuf v1.36.11
