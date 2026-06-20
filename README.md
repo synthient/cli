@@ -73,16 +73,16 @@ Use `synthient status` to confirm which auth source is active without printing t
 
 ## Demo Gallery
 
-| Status | Lookup |
-| --- | --- |
+| Status                                  | Lookup                           |
+| --------------------------------------- | -------------------------------- |
 | ![Status and auth demo](demos/auth.gif) | ![Lookup demo](demos/lookup.gif) |
 
-| Feeds | Streaming |
-| --- | --- |
+| Feeds                                  | Streaming                              |
+| -------------------------------------- | -------------------------------------- |
 | ![Feed snapshot demo](demos/feeds.gif) | ![Proxy stream demo](demos/stream.gif) |
 
-| Download | gRPC Schemas |
-| --- | --- |
+| Download                                      | gRPC Schemas                        |
+| --------------------------------------------- | ----------------------------------- |
 | ![Snapshot download demo](demos/download.gif) | ![gRPC schema demo](demos/grpc.gif) |
 
 ## Quick Start
@@ -254,13 +254,13 @@ synthient --config ./config.toml status
 
 Global flags:
 
-| Flag | Purpose |
-| --- | --- |
-| `--config <path>` | Read configuration from a non-default TOML file |
+| Flag               | Purpose                                           |
+| ------------------ | ------------------------------------------------- |
+| `--config <path>`  | Read configuration from a non-default TOML file   |
 | `--profile <name>` | Apply endpoint overrides from `[profiles.<name>]` |
-| `--no-color` | Disable ANSI styling |
-| `--quiet`, `-q` | Suppress human progress output where supported |
-| `--version`, `-v` | Print CLI version |
+| `--no-color`       | Disable ANSI styling                              |
+| `--quiet`, `-q`    | Suppress human progress output where supported    |
+| `--version`, `-v`  | Print CLI version                                 |
 
 ## Account and Permissions
 
@@ -293,23 +293,23 @@ synthient stream proxies --duration 5s --no-preflight
 
 Relevant scopes:
 
-| Scope | Grants |
-| --- | --- |
-| `BASIC` | Account, IP lookup, batch IP lookup, and domain lookup |
-| `PROXY_FEEDS` | Proxy snapshot list, metadata, checksum, schema, and download |
-| `PROXY_FIREHOSE` | Proxy live stream |
-| `ANONYMIZERS_FEED` | Anonymizer snapshot list, metadata, checksum, schema, and download |
-| `ANONYMIZERS_STREAM` | Anonymizer live stream |
-| `TORRENTS_FEED` | Torrent snapshot list, metadata, checksum, schema, and download |
-| `TORRENTS_STREAM` | Torrent live stream |
-| `HONEYPOT_HTTP_FEED` | HTTP honeypot snapshots |
-| `HONEYPOT_HTTP_STREAM` | HTTP honeypot stream |
-| `HONEYPOT_HTTPS_FEED` | HTTPS/TLS honeypot snapshots |
-| `HONEYPOT_HTTPS_STREAM` | HTTPS/TLS honeypot stream |
-| `HONEYPOT_DNS_FEED` | DNS honeypot snapshots |
-| `HONEYPOT_DNS_STREAM` | DNS honeypot stream |
-| `HONEYPOT_ADB_FEED` | ADB honeypot snapshots |
-| `HONEYPOT_ADB_STREAM` | ADB honeypot stream |
+| Scope                   | Grants                                                             |
+| ----------------------- | ------------------------------------------------------------------ |
+| `BASIC`                 | Account, IP lookup, batch IP lookup, and domain lookup             |
+| `PROXY_FEEDS`           | Proxy snapshot list, metadata, checksum, schema, and download      |
+| `PROXY_FIREHOSE`        | Proxy live stream                                                  |
+| `ANONYMIZERS_FEED`      | Anonymizer snapshot list, metadata, checksum, schema, and download |
+| `ANONYMIZERS_STREAM`    | Anonymizer live stream                                             |
+| `TORRENTS_FEED`         | Torrent snapshot list, metadata, checksum, schema, and download    |
+| `TORRENTS_STREAM`       | Torrent live stream                                                |
+| `HONEYPOT_HTTP_FEED`    | HTTP honeypot snapshots                                            |
+| `HONEYPOT_HTTP_STREAM`  | HTTP honeypot stream                                               |
+| `HONEYPOT_HTTPS_FEED`   | HTTPS/TLS honeypot snapshots                                       |
+| `HONEYPOT_HTTPS_STREAM` | HTTPS/TLS honeypot stream                                          |
+| `HONEYPOT_DNS_FEED`     | DNS honeypot snapshots                                             |
+| `HONEYPOT_DNS_STREAM`   | DNS honeypot stream                                                |
+| `HONEYPOT_ADB_FEED`     | ADB honeypot snapshots                                             |
+| `HONEYPOT_ADB_STREAM`   | ADB honeypot stream                                                |
 
 ## Lookup Workflows
 
@@ -356,15 +356,15 @@ synthient feeds streams --format json
 
 Current stream names:
 
-| Stream | Aliases | Description |
-| --- | --- | --- |
-| `proxies` | `proxy` | Proxy IP observations across residential, datacenter, and mobile networks |
-| `anonymizers` | `anonymizer` | VPN, Tor, private relay, and other anonymizer ranges |
-| `torrents` | `torrent` | DHT and tracker peer sightings |
-| `honeypot_http` | `helios_http`, `http` | HTTP request captures from Helios sensors |
-| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors |
-| `honeypot_dns` | `helios_dns`, `dns` | DNS resolution observations from Helios tunnels (snapshots only, no live stream) |
-| `honeypot_adb` | `helios_adb`, `adb` | Android Debug Bridge shell commands captured by Helios sensors (snapshots only, no live stream) |
+| Stream           | Aliases                        | Description                                                                                     |
+| ---------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks                       |
+| `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                                            |
+| `torrents`       | `torrent`                      | DHT and tracker peer sightings                                                                  |
+| `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                                       |
+| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                                                    |
+| `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels (snapshots only, no live stream)                |
+| `honeypot_adb`   | `helios_adb`, `adb`            | Android Debug Bridge shell commands captured by Helios sensors (snapshots only, no live stream) |
 
 List snapshots:
 
@@ -441,14 +441,14 @@ synthient download proxies proxies.parquet --date 2026-06-03 --hour 0
 
 Flags:
 
-| Flag | Purpose |
-| --- | --- |
-| `--date YYYY-MM-DD|latest`, `-d` | Snapshot date for the wrapper command |
-| `--hour 0-23` | UTC hour for an hourly snapshot |
-| `--force` | Overwrite an existing `.parquet` file |
-| `--verify` | Verify the downloaded file against snapshot metadata checksum |
-| `--silent`, `-s` | Suppress download output |
-| `--no-preflight` | Skip feed scope preflight |
+| Flag               | Purpose                                                       |
+| ------------------ | ------------------------------------------------------------- | ------------------------------------- |
+| `--date YYYY-MM-DD | latest`, `-d`                                                 | Snapshot date for the wrapper command |
+| `--hour 0-23`      | UTC hour for an hourly snapshot                               |
+| `--force`          | Overwrite an existing `.parquet` file                         |
+| `--verify`         | Verify the downloaded file against snapshot metadata checksum |
+| `--silent`, `-s`   | Suppress download output                                      |
+| `--no-preflight`   | Skip feed scope preflight                                     |
 
 For scripts that already resolved a snapshot ID, prefer the explicit command:
 
@@ -565,18 +565,20 @@ synthient grpc schema --include-reflection
 
 Flags:
 
-| Flag | Purpose |
-| --- | --- |
-| `--format text|json|binpb`, `-f` | Output representation |
-| `--output -|file`, `-o` | Destination |
-| `--endpoint <host:port>` | Override configured gRPC endpoint |
-| `--timeout <duration>` | Reflection timeout, default `15s` |
-| `--plaintext` | Connect without TLS |
-| `--include-reflection` | Include gRPC reflection descriptors in output |
+| Flag                     | Purpose                                       |
+| ------------------------ | --------------------------------------------- | ------------ | --------------------- |
+| `--format text           | json                                          | binpb`, `-f` | Output representation |
+| `--output -              | file`, `-o`                                   | Destination  |
+| `--endpoint <host:port>` | Override configured gRPC endpoint             |
+| `--timeout <duration>`   | Reflection timeout, default `15s`             |
+| `--plaintext`            | Connect without TLS                           |
+| `--include-reflection`   | Include gRPC reflection descriptors in output |
 
 ## MCP Server
 
 `synthient mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server that exposes Synthient lookups, feed metadata, live samples, and schemas as tools for MCP-compatible clients such as Claude Desktop. The server communicates over stdio.
+
+![MCP server demo](demos/mcp.gif)
 
 Start the server:
 
@@ -588,23 +590,23 @@ The server authenticates with the same credential lookup order as the rest of th
 
 Exposed tools:
 
-| Tool | Purpose |
-| --- | --- |
-| `lookup_ip` | Look up intelligence for one or more IP addresses |
-| `lookup_domain` | Look up domain intelligence from Helios observations |
-| `get_account` | Report organization, scopes, and lookup quota |
-| `list_feed_streams` | List available feed streams with descriptions and aliases |
-| `list_feed_snapshots` | List Parquet snapshots for a stream, with pagination |
-| `feed_snapshot_meta` | Return snapshot metadata, checksum, size, row count, and schema |
-| `sample_stream` | Collect a bounded sample of live events from a real-time feed |
-| `grpc_schema` | Fetch protobuf descriptors through gRPC reflection |
+| Tool                  | Purpose                                                         |
+| --------------------- | --------------------------------------------------------------- |
+| `lookup_ip`           | Look up intelligence for one or more IP addresses               |
+| `lookup_domain`       | Look up domain intelligence from Helios observations            |
+| `get_account`         | Report organization, scopes, and lookup quota                   |
+| `list_feed_streams`   | List available feed streams with descriptions and aliases       |
+| `list_feed_snapshots` | List Parquet snapshots for a stream, with pagination            |
+| `feed_snapshot_meta`  | Return snapshot metadata, checksum, size, row count, and schema |
+| `sample_stream`       | Collect a bounded sample of live events from a real-time feed   |
+| `grpc_schema`         | Fetch protobuf descriptors through gRPC reflection              |
 
 Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover the streams that support those surfaces; the honeypot DNS and ADB feeds are snapshot-only and have no live sample.
 
 Flags:
 
-| Flag | Purpose |
-| --- | --- |
+| Flag                  | Purpose                                                    |
+| --------------------- | ---------------------------------------------------------- |
 | `--transport <stdio>` | Transport the server listens on; only `stdio` is supported |
 
 ### Claude Desktop
