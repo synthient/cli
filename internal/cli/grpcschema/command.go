@@ -49,7 +49,7 @@ var SchemaCommand = &cobra.Command{
 	Args:    cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		if !slices.Contains(formats, flags.format) {
-			timber.FatalMsg("invalid output format", timber.A("value", flags.format), timber.A("valid", strings.Join(formats, "|")))
+			timber.FatalMsgf("invalid output format %q; valid formats: %s", flags.format, strings.Join(formats, "|"))
 		}
 
 		config, err := conf.Read()

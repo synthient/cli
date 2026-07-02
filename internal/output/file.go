@@ -22,13 +22,13 @@ func Open(path string) (*os.File, func()) {
 
 	file, err := os.Create(path)
 	if err != nil {
-		timber.Fatal(err, "failed to create output file", timber.A("file", path))
+		timber.Fatalf(err, "failed to create output file: %s", path)
 	}
 
 	return file, func() {
 		err := file.Close()
 		if err != nil {
-			timber.Fatal(err, "failed to close output file", timber.A("file", path))
+			timber.Fatalf(err, "failed to close output file: %s", path)
 		}
 	}
 }

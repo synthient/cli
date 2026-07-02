@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/synthient/go-synthient/v2 v2.3.1
 	github.com/zalando/go-keyring v0.2.6
-	go.mattglei.ch/timber v1.8.2
+	go.mattglei.ch/timber v1.9.0
 	google.golang.org/protobuf v1.36.11
 )
 

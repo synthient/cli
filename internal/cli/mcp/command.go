@@ -30,7 +30,7 @@ var Command = &cobra.Command{
 		config.ApplyToClient(&client)
 
 		if flags.transport != "stdio" {
-			timber.FatalMsg("unsupported transport", timber.A("value", flags.transport), timber.A("valid", "stdio"))
+			timber.FatalMsgf("unsupported transport %q; valid transports: %s", flags.transport, "stdio")
 		}
 
 		err = run(cmd.Context(), config, client)

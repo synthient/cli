@@ -51,7 +51,7 @@ var Command = &cobra.Command{
 		}
 		stream, ok := feed.Find(streamName)
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", streamName), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", streamName, feed.Names())
 		}
 
 		if !flags.noPreflight {
@@ -72,7 +72,7 @@ var Command = &cobra.Command{
 			Out:      os.Stdout,
 		})
 		if err != nil {
-			app.Fatal(err, "failed to download", timber.A("file", filename), timber.A("stream", stream.Name))
+			app.Fatal(err, fmt.Sprintf("failed to download %s from stream %s", filename, stream.Name))
 		}
 	},
 }
@@ -82,7 +82,7 @@ func snapshotFromFlags() string {
 		return flags.date
 	}
 	if flags.hour > 23 {
-		timber.FatalMsg("hour must be between 0 and 23", timber.A("hour", flags.hour))
+		timber.FatalMsgf("hour must be between 0 and 23: %d", flags.hour)
 	}
 	if flags.date == "latest" {
 		timber.FatalMsg("hour cannot be used with latest snapshot")

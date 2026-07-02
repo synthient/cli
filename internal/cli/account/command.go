@@ -20,7 +20,7 @@ var Command = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		if !slices.Contains(formats, flags.format) {
-			timber.FatalMsg("invalid output format", timber.A("value", flags.format), timber.A("valid", strings.Join(formats, "|")))
+			timber.FatalMsgf("invalid output format %q; valid formats: %s", flags.format, strings.Join(formats, "|"))
 		}
 
 		out, closeOut := output.Open(flags.output)

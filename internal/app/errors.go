@@ -11,14 +11,14 @@ import (
 	"go.mattglei.ch/timber"
 )
 
-func Fatal(err error, msg string, attrs ...timber.Attr) {
+func Fatal(err error, msg string) {
 	if err == nil {
 		return
 	}
 	if text := Explain(err); text != "" {
-		timber.FatalMsg(text, attrs...)
+		timber.FatalMsg(text)
 	}
-	timber.Fatal(err, msg, attrs...)
+	timber.Fatal(err, msg)
 }
 
 func Explain(err error) string {

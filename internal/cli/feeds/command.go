@@ -88,7 +88,7 @@ var SnapshotsCommand = &cobra.Command{
 		validateFormat()
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
@@ -151,7 +151,7 @@ var MetaCommand = &cobra.Command{
 		validateFormat()
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
@@ -209,7 +209,7 @@ var SchemaCommand = &cobra.Command{
 		validateFormat()
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
@@ -250,7 +250,7 @@ var ChecksumCommand = &cobra.Command{
 		validateFormat()
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
@@ -293,7 +293,7 @@ var DownloadCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
@@ -320,7 +320,7 @@ func init() {
 
 func validateFormat() {
 	if !slices.Contains(formats, flags.format) {
-		timber.FatalMsg("invalid output format", timber.A("value", flags.format), timber.A("valid", strings.Join(formats, "|")))
+		timber.FatalMsgf("invalid output format %q; valid formats: %s", flags.format, strings.Join(formats, "|"))
 	}
 }
 

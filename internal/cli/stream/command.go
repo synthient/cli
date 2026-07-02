@@ -32,11 +32,11 @@ var Command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stream, ok := feed.Find(args[0])
 		if !ok {
-			timber.FatalMsg("unknown stream", timber.A("value", args[0]), timber.A("valid", feed.Names()))
+			timber.FatalMsgf("unknown stream %q; valid streams: %s", args[0], feed.Names())
 		}
 		validateFilters()
 		if flags.duration < 0 {
-			timber.FatalMsg("duration must be positive", timber.A("duration", flags.duration.String()))
+			timber.FatalMsgf("duration must be positive: %s", flags.duration)
 		}
 
 		config, err := conf.Read()
@@ -110,7 +110,7 @@ var Command = &cobra.Command{
 				app.Fatal(err, "failed to stream feed")
 			}
 			delay := retryDelay(attempt)
-			timber.Warning("stream disconnected, reconnecting", timber.A("stream", stream.Name), timber.A("delay", delay.String()))
+			timber.Warningf("stream %s disconnected, reconnecting in %s", stream.Name, delay)
 			select {
 			case <-time.After(delay):
 			case <-ctx.Done():
@@ -219,7 +219,7 @@ func validateFilters() {
 	for _, raw := range flags.filters {
 		field, expected, ok := strings.Cut(raw, "=")
 		if !ok || strings.TrimSpace(field) == "" || strings.TrimSpace(expected) == "" {
-			timber.FatalMsg("invalid filter, expected field=value", timber.A("filter", raw))
+			timber.FatalMsgf("invalid filter %q, expected field=value", raw)
 		}
 	}
 }
