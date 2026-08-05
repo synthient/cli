@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/colorprofile"
 	"go.mattglei.ch/timber"
 )
 
 func WriteLine(out *os.File, v ...any) {
-	_, err := fmt.Fprintln(out, v...)
+	writer := colorprofile.NewWriter(out, os.Environ())
+	writer.Profile = detectProfile(out)
+	_, err := fmt.Fprintln(writer, v...)
 	if err != nil {
 		timber.Fatal(err, "failed to write string to output")
 	}

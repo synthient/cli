@@ -3,7 +3,7 @@ package output
 import (
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 func PadRight(value string, width int) string {
