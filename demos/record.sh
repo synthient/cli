@@ -13,7 +13,7 @@ for command in go vhs ffmpeg jq awk; do
 done
 
 mkdir -p dist
-go build -o dist/synthient ./cmd
+go build -o dist/synthient ./cmd/synthient
 
 export PATH="$PWD/dist:$PATH"
 unset NO_COLOR

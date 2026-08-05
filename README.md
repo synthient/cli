@@ -22,7 +22,7 @@ brew install synthient/tap/synthient
 Install with Go:
 
 ```bash
-go install github.com/synthient/cli/cmd@latest
+go install github.com/synthient/cli/cmd/synthient@latest
 ```
 
 Build from a local checkout:
@@ -30,7 +30,7 @@ Build from a local checkout:
 ```bash
 git clone https://github.com/synthient/cli.git
 cd cli
-go build -o ./dist/synthient ./cmd
+go build -o ./dist/synthient ./cmd/synthient
 ./dist/synthient --version
 ```
 
@@ -708,13 +708,13 @@ synthient grpc schema synthient.v1.SynthientService \
 Run the CLI from source:
 
 ```bash
-go run ./cmd status
+go run ./cmd/synthient status
 ```
 
 Build:
 
 ```bash
-go build -o /tmp/synthient-cli ./cmd
+go build -o /tmp/synthient-cli ./cmd/synthient
 ```
 
 Test and vet:
@@ -729,7 +729,7 @@ Full local audit:
 ```bash
 go test ./...
 go vet ./...
-go build -o /tmp/synthient-cli ./cmd
+go build -o /tmp/synthient-cli ./cmd/synthient
 ```
 
 Smoke-check production commands with a live key:

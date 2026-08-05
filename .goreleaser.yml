@@ -11,7 +11,7 @@ before:
     - ./completions.sh
 builds:
   - id: synthient
-    main: ./cmd
+    main: ./cmd/synthient
     binary: synthient
     env:
       - CGO_ENABLED=0
