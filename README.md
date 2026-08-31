@@ -361,6 +361,8 @@ Current stream names:
 | `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks                       |
 | `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                                            |
 | `torrents`       | `torrent`                      | DHT and tracker peer sightings                                                                  |
+| `ja4`            |                                | TLS and HTTP fingerprint captures from the JA4 suite                                            |
+| `ja4t`           |                                | TCP handshake fingerprint observations from JA4T sensors                                        |
 | `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                                       |
 | `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                                                    |
 | `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels (snapshots only, no live stream)                |

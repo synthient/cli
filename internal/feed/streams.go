@@ -36,6 +36,20 @@ var Streams = []Stream{
 		Description: "DHT and tracker peer sightings with metadata and observed peers.",
 	},
 	{
+		Name:        "ja4",
+		ListName:    "ja4",
+		Path:        []string{"feeds", "ja4"},
+		Aliases:     []string{},
+		Description: "TLS and HTTP fingerprint captures from the JA4 suite.",
+	},
+	{
+		Name:        "ja4t",
+		ListName:    "ja4t",
+		Path:        []string{"feeds", "ja4t"},
+		Aliases:     []string{},
+		Description: "TCP handshake fingerprint observations from JA4T sensors.",
+	},
+	{
 		Name:        "honeypot_http",
 		ListName:    "honeypot_http",
 		Path:        []string{"feeds", "helio", "http"},

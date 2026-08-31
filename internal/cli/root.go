@@ -8,7 +8,7 @@ import (
 
 var Root = &cobra.Command{
 	Use:     "synthient",
-	Version: "v1.7.3",
+	Version: "v1.7.4",
 	Short:   "Official CLI tool for Synthient",
 	Long:    "Synthient's official CLI for account inspection, IP and domain lookups, gRPC schemas, real-time feed streams, and Parquet snapshot downloads.",
 	Run: func(cmd *cobra.Command, args []string) {

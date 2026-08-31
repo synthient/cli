@@ -124,14 +124,14 @@ type listFeedStreamsOutput struct {
 func registerListFeedStreams(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_feed_streams",
-		Description: "List the available Synthient feed streams (proxies, anonymizers, torrents, and Helios honeypot feeds) with their descriptions and aliases.",
+		Description: "List the available Synthient feed streams (proxies, anonymizers, torrents, JA4, and Helios honeypot feeds) with their descriptions and aliases.",
 	}, func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, listFeedStreamsOutput, error) {
 		return nil, listFeedStreamsOutput{Streams: feed.Streams}, nil
 	})
 }
 
 type listFeedSnapshotsInput struct {
-	Stream string `json:"stream" jsonschema:"feed stream name, e.g. proxies, anonymizers, torrents, honeypot_http, honeypot_https, honeypot_dns, honeypot_adb"`
+	Stream string `json:"stream" jsonschema:"feed stream name, e.g. proxies, anonymizers, torrents, ja4, ja4t, honeypot_http, honeypot_https, honeypot_dns, honeypot_adb"`
 	Limit  int    `json:"limit,omitempty" jsonschema:"page size; defaults to 100, capped at 500 by the API"`
 	Cursor string `json:"cursor,omitempty" jsonschema:"pagination token from a previous page's next_cursor; omit on the first call"`
 }
@@ -154,7 +154,7 @@ func registerListFeedSnapshots(server *mcp.Server, client synthient.Client) {
 }
 
 type feedSnapshotMetaInput struct {
-	Stream string `json:"stream" jsonschema:"feed stream name, e.g. proxies, anonymizers, torrents, honeypot_http, honeypot_https, honeypot_dns, honeypot_adb"`
+	Stream string `json:"stream" jsonschema:"feed stream name, e.g. proxies, anonymizers, torrents, ja4, ja4t, honeypot_http, honeypot_https, honeypot_dns, honeypot_adb"`
 	Date   string `json:"date" jsonschema:"snapshot identifier: YYYY-MM-DD for daily, YYYY-MM-DD/HH for an hourly, or 'latest' for the most recent hourly"`
 }
 
@@ -188,7 +188,7 @@ const (
 )
 
 type sampleStreamInput struct {
-	Stream         string `json:"stream" jsonschema:"real-time stream name: proxies, anonymizers, torrents, honeypot_http, or honeypot_https"`
+	Stream         string `json:"stream" jsonschema:"real-time stream name: proxies, anonymizers, torrents, ja4, ja4t, honeypot_http, or honeypot_https"`
 	Count          int    `json:"count,omitempty" jsonschema:"number of events to collect before returning; defaults to 10, capped at 500"`
 	TimeoutSeconds int    `json:"timeout_seconds,omitempty" jsonschema:"stop and return early if the stream is idle this long; defaults to 15, capped at 120"`
 }
@@ -245,6 +245,10 @@ func sampleStream(ctx context.Context, client *synthient.Client, stream string, 
 		return collectEvents(client.StreamAnonymizer(opts), count)
 	case "torrents":
 		return collectEvents(client.StreamTorrent(opts), count)
+	case "ja4":
+		return collectEvents(client.StreamJA4(opts), count)
+	case "ja4t":
+		return collectEvents(client.StreamJA4T(opts), count)
 	case "honeypot_http":
 		return collectEvents(client.StreamHeliosHTTP(opts), count)
 	case "honeypot_https":

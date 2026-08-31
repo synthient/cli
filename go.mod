@@ -11,7 +11,7 @@ require (
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/spf13/cobra v1.10.2
-	github.com/synthient/go-synthient/v2 v2.3.1
+	github.com/synthient/go-synthient/v2 v2.4.2
 	github.com/zalando/go-keyring v0.2.8
 	go.mattglei.ch/timber v1.9.0
 	google.golang.org/protobuf v1.36.11
