@@ -418,15 +418,11 @@ The output file must end in `.parquet`. Without `--force`, existing files are no
 
 ## Download Convenience Command
 
-`synthient download` is a shorter wrapper around feed downloads.
-
-Default wrapper behavior:
+`synthient download` is a shorter wrapper around feed downloads. The stream always comes first and the output file always comes last. The snapshot is optional and defaults to `latest`.
 
 ```bash
-synthient download anonymizers-latest.parquet
+synthient download anonymizers anonymizers-latest.parquet
 ```
-
-That downloads the wrapper command's default stream with the default `latest` snapshot selection. For production jobs, prefer an explicit stream and snapshot.
 
 Explicit stream and snapshot:
 
