@@ -72,10 +72,9 @@ var SchemaCommand = &cobra.Command{
 		defer cancel()
 
 		result, err := client.GRPCSchema(ctx, &synthient.GRPCSchemaOptions{
-			Endpoint:          endpoint,
-			Plaintext:         flags.plaintext,
-			IncludeReflection: flags.includeReflection,
-			Symbols:           args,
+			Endpoint:  endpoint,
+			Plaintext: flags.plaintext,
+			Symbols:   args,
 		})
 		if err != nil {
 			if msg := synthient.ExplainGRPCError(err); msg != "" {

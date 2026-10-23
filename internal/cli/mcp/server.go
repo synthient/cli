@@ -287,10 +287,9 @@ func collectEvents[T any](seq iter.Seq2[T, error], count int) ([]map[string]any,
 // --- gRPC schema ---
 
 type grpcSchemaInput struct {
-	Symbols           []string `json:"symbols,omitempty" jsonschema:"fully-qualified service or message names to resolve; omit to fetch every exposed service"`
-	Endpoint          string   `json:"endpoint,omitempty" jsonschema:"override gRPC endpoint (host:port); defaults to the configured endpoint"`
-	Plaintext         bool     `json:"plaintext,omitempty" jsonschema:"connect without TLS"`
-	IncludeReflection bool     `json:"include_reflection,omitempty" jsonschema:"include the gRPC reflection service descriptors in the output"`
+	Symbols   []string `json:"symbols,omitempty" jsonschema:"fully-qualified service or message names to resolve; omit to fetch every exposed service"`
+	Endpoint  string   `json:"endpoint,omitempty" jsonschema:"override gRPC endpoint (host:port); defaults to the configured endpoint"`
+	Plaintext bool     `json:"plaintext,omitempty" jsonschema:"connect without TLS"`
 }
 
 type grpcFile struct {
@@ -331,10 +330,9 @@ func registerGRPCSchema(server *mcp.Server, config conf.Config, client synthient
 		defer cancel()
 
 		result, err := client.GRPCSchema(schemaCtx, &synthient.GRPCSchemaOptions{
-			Endpoint:          endpoint,
-			Plaintext:         in.Plaintext,
-			IncludeReflection: in.IncludeReflection,
-			Symbols:           in.Symbols,
+			Endpoint:  endpoint,
+			Plaintext: in.Plaintext,
+			Symbols:   in.Symbols,
 		})
 		if err != nil {
 			if msg := synthient.ExplainGRPCError(err); msg != "" {

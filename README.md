@@ -552,12 +552,6 @@ Use plaintext for local reflection servers:
 synthient grpc schema --endpoint 127.0.0.1:50051 --plaintext
 ```
 
-Include reflection service descriptors:
-
-```bash
-synthient grpc schema --include-reflection
-```
-
 Flags:
 
 | Flag                     | Purpose                                       |
@@ -567,7 +561,6 @@ Flags:
 | `--endpoint <host:port>` | Override configured gRPC endpoint             |
 | `--timeout <duration>`   | Reflection timeout, default `15s`             |
 | `--plaintext`            | Connect without TLS                           |
-| `--include-reflection`   | Include gRPC reflection descriptors in output |
 
 ## MCP Server
 
