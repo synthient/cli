@@ -1,6 +1,7 @@
 package feeds
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -19,7 +20,7 @@ import (
 	"github.com/synthient/cli/internal/feeddownload"
 	"github.com/synthient/cli/internal/options"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 	"go.mattglei.ch/timber"
 )
 
@@ -92,14 +93,10 @@ var SnapshotsCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		opts := &synthient.FeedSnapshotsOptions{}
-		if flags.limit > 0 {
-			opts.Limit = flags.limit
-		}
-		if flags.cursor != "" {
-			opts.Cursor = flags.cursor
-		}
-		page, err := client.FeedSnapshots(stream.Name, opts, nil)
+		page, err := stream.Feed(client).ListExports(context.Background(), synthient.ListExportsParams{
+			Limit:  flags.limit,
+			Cursor: flags.cursor,
+		})
 		if err != nil {
 			app.Fatal(err, "failed to list feed snapshots")
 		}
@@ -108,7 +105,7 @@ var SnapshotsCommand = &cobra.Command{
 		defer closeOut()
 		switch flags.format {
 		case "text":
-			writeSnapshotList(out, output.NewStyles(out), stream, page)
+			writeSnapshotList(out, output.NewStyles(out), stream, *page)
 		case "json":
 			output.JSON(out, page)
 		case "csv":
@@ -117,21 +114,21 @@ var SnapshotsCommand = &cobra.Command{
 			if err != nil {
 				app.Fatal(err, "failed to write csv header")
 			}
-			for _, snap := range page.Feeds {
+			for _, snap := range page.Exports {
 				hour := ""
 				if snap.Hour != nil {
 					hour = strconv.Itoa(*snap.Hour)
 				}
 				err = writer.Write([]string{
 					page.Stream,
-					snap.Kind,
+					string(snap.Kind),
 					snap.ID,
 					snap.Date,
 					hour,
 					strconv.FormatInt(snap.SizeBytes, 10),
 					strconv.FormatInt(snap.RowCount, 10),
 					snap.Checksum,
-					strconv.FormatInt(snap.CreatedAt, 10),
+					strconv.FormatInt(int64(snap.CreatedAt), 10),
 					snap.DownloadPath,
 				})
 				if err != nil {
@@ -155,7 +152,7 @@ var MetaCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
+		meta, err := stream.Feed(client).ExportMeta(context.Background(), args[1])
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot metadata")
 		}
@@ -164,7 +161,7 @@ var MetaCommand = &cobra.Command{
 		defer closeOut()
 		switch flags.format {
 		case "text":
-			writeSnapshotMeta(out, output.NewStyles(out), meta)
+			writeSnapshotMeta(out, output.NewStyles(out), *meta)
 		case "json":
 			output.JSON(out, meta)
 		case "csv":
@@ -180,17 +177,17 @@ var MetaCommand = &cobra.Command{
 			for _, field := range meta.Schema.Fields {
 				err = writer.Write([]string{
 					meta.Stream,
-					meta.Kind,
+					string(meta.Kind),
 					meta.ID,
 					meta.Format,
-					strconv.FormatInt(meta.Date, 10),
+					strconv.FormatInt(int64(meta.Date), 10),
 					hour,
-					strconv.FormatInt(meta.CreatedAt, 10),
+					strconv.FormatInt(int64(meta.CreatedAt), 10),
 					strconv.FormatInt(meta.Size, 10),
 					strconv.FormatInt(meta.Rows, 10),
 					meta.Checksum,
 					field.Name,
-					field.Type,
+					string(field.Type),
 				})
 				if err != nil {
 					app.Fatal(err, "failed to write csv row")
@@ -213,7 +210,7 @@ var SchemaCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
+		meta, err := stream.Feed(client).ExportMeta(context.Background(), args[1])
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot schema")
 		}
@@ -222,7 +219,7 @@ var SchemaCommand = &cobra.Command{
 		defer closeOut()
 		switch flags.format {
 		case "text":
-			writeSchema(out, output.NewStyles(out), meta)
+			writeSchema(out, output.NewStyles(out), *meta)
 		case "json":
 			output.JSON(out, meta.Schema.Fields)
 		case "csv":
@@ -232,7 +229,7 @@ var SchemaCommand = &cobra.Command{
 				app.Fatal(err, "failed to write csv header")
 			}
 			for _, field := range meta.Schema.Fields {
-				err = writer.Write([]string{field.Name, field.Type})
+				err = writer.Write([]string{field.Name, string(field.Type)})
 				if err != nil {
 					app.Fatal(err, "failed to write csv row")
 				}
@@ -254,7 +251,7 @@ var ChecksumCommand = &cobra.Command{
 		}
 		client := newClient()
 		requireFeedScope(client, stream)
-		meta, err := client.FeedSnapshotMeta(stream.Name, args[1], nil)
+		meta, err := stream.Feed(client).ExportMeta(context.Background(), args[1])
 		if err != nil {
 			app.Fatal(err, "failed to get feed snapshot checksum")
 		}
@@ -324,7 +321,7 @@ func validateFormat() {
 	}
 }
 
-func newClient() synthient.Client {
+func newClient() *synthient.Client {
 	config, err := conf.Read()
 	if err != nil {
 		app.Fatal(err, "failed to read configuration file")
@@ -333,11 +330,10 @@ func newClient() synthient.Client {
 	if err != nil {
 		app.Fatal(err, "failed to create synthient client")
 	}
-	config.ApplyToClient(&client)
 	return client
 }
 
-func requireFeedScope(client synthient.Client, stream feed.Stream) {
+func requireFeedScope(client *synthient.Client, stream feed.Stream) {
 	if flags.noPreflight {
 		return
 	}
@@ -354,7 +350,7 @@ func connector(final bool) string {
 	return "├"
 }
 
-func writeSnapshotList(out *os.File, styles output.Styles, stream feed.Stream, page synthient.FeedSnapshotsPage) {
+func writeSnapshotList(out *os.File, styles output.Styles, stream feed.Stream, page synthient.ExportPage) {
 	output.Header(out, styles, "Snapshots", stream.Name)
 	output.Divider(out, styles)
 	output.WriteLine(
@@ -370,11 +366,11 @@ func writeSnapshotList(out *os.File, styles output.Styles, stream feed.Stream, p
 			output.PadLeft(styles.Muted.Render("Size"), 12),
 		),
 	)
-	if len(page.Feeds) == 0 {
+	if len(page.Exports) == 0 {
 		output.Outro(out, styles, "No snapshots returned")
 		return
 	}
-	for i, snap := range page.Feeds {
+	for i, snap := range page.Exports {
 		hour := ""
 		if snap.Hour != nil {
 			hour = strconv.Itoa(*snap.Hour)
@@ -383,9 +379,9 @@ func writeSnapshotList(out *os.File, styles output.Styles, stream feed.Stream, p
 			out,
 			fmt.Sprintf(
 				"%s  %s %s %s %s %s %s",
-				styles.Frame.Render(connector(i+1 == len(page.Feeds) && page.NextCursor == "")),
+				styles.Frame.Render(connector(i+1 == len(page.Exports) && page.NextCursor == "")),
 				output.PadRight(styles.Key.Render(snap.ID), 18),
-				output.PadRight(styles.Warm.Render(snap.Kind), 8),
+				output.PadRight(styles.Warm.Render(string(snap.Kind)), 8),
 				output.PadRight(styles.Value.Render(snap.Date), 10),
 				output.PadRight(styles.Muted.Render(hour), 4),
 				output.PadLeft(styles.Num.Render(humanize.Comma(snap.RowCount)), 12),
@@ -399,7 +395,7 @@ func writeSnapshotList(out *os.File, styles output.Styles, stream feed.Stream, p
 	}
 }
 
-func writeSnapshotMeta(out *os.File, styles output.Styles, meta synthient.FeedSnapshotMeta) {
+func writeSnapshotMeta(out *os.File, styles output.Styles, meta synthient.ExportMeta) {
 	output.Header(out, styles, "Snapshot", meta.ID)
 	output.Divider(out, styles)
 	hour := "None"
@@ -411,11 +407,11 @@ func writeSnapshotMeta(out *os.File, styles output.Styles, meta synthient.FeedSn
 			Name: "Metadata",
 			Values: []output.BlockValue{
 				{Key: "Stream", Value: meta.Stream},
-				{Key: "Kind", Value: meta.Kind},
+				{Key: "Kind", Value: string(meta.Kind)},
 				{Key: "Format", Value: meta.Format},
-				{Key: "Date", Value: time.Unix(meta.Date, 0).UTC().Format(time.RFC3339)},
+				{Key: "Date", Value: meta.Date.Time().Format(time.RFC3339)},
 				{Key: "Hour", Value: hour},
-				{Key: "Created", Value: time.Unix(meta.CreatedAt, 0).UTC().Format(time.RFC3339)},
+				{Key: "Created", Value: meta.CreatedAt.Time().Format(time.RFC3339)},
 				{Key: "Rows", Value: humanize.Comma(meta.Rows)},
 				{Key: "Size", Value: humanize.Bytes(uint64(meta.Size))},
 				{Key: "Checksum", Value: meta.Checksum},
@@ -424,7 +420,7 @@ func writeSnapshotMeta(out *os.File, styles output.Styles, meta synthient.FeedSn
 	}
 	schema := output.Block{Name: "Schema"}
 	for _, field := range meta.Schema.Fields {
-		schema.Values = append(schema.Values, output.BlockValue{Key: field.Name, Value: field.Type})
+		schema.Values = append(schema.Values, output.BlockValue{Key: field.Name, Value: string(field.Type)})
 	}
 	blocks = append(blocks, schema)
 	for i, block := range blocks {
@@ -435,12 +431,12 @@ func writeSnapshotMeta(out *os.File, styles output.Styles, meta synthient.FeedSn
 	}
 }
 
-func writeSchema(out *os.File, styles output.Styles, meta synthient.FeedSnapshotMeta) {
+func writeSchema(out *os.File, styles output.Styles, meta synthient.ExportMeta) {
 	output.Header(out, styles, "Schema", meta.ID)
 	output.Divider(out, styles)
 	block := output.Block{Name: "Fields"}
 	for _, field := range meta.Schema.Fields {
-		block.Values = append(block.Values, output.BlockValue{Key: field.Name, Value: field.Type})
+		block.Values = append(block.Values, output.BlockValue{Key: field.Name, Value: string(field.Type)})
 	}
 	block.Output(out, styles, 0, true)
 }

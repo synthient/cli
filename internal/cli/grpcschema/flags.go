@@ -10,12 +10,11 @@ var (
 	formats = []string{"text", "json", "binpb"}
 
 	flags struct {
-		format            string
-		output            string
-		endpoint          string
-		timeout           time.Duration
-		plaintext         bool
-		includeReflection bool
+		format    string
+		output    string
+		endpoint  string
+		timeout   time.Duration
+		plaintext bool
 	}
 )
 
@@ -30,6 +29,4 @@ func init() {
 		DurationVar(&flags.timeout, "timeout", 15*time.Second, "Reflection request timeout")
 	SchemaCommand.Flags().
 		BoolVar(&flags.plaintext, "plaintext", false, "Connect without TLS")
-	SchemaCommand.Flags().
-		BoolVar(&flags.includeReflection, "include-reflection", false, "Include gRPC reflection service descriptors")
 }

@@ -231,12 +231,10 @@ Example:
 ```toml
 [endpoints]
 base_api = "https://api.synthient.com/api/v4"
-base_feeds = "https://feeds.synthient.com/v3"
 base_grpc = "grpc.synthient.com:443"
 
 [profiles.staging.endpoints]
 base_api = "https://staging-api.example.com/api/v4"
-base_feeds = "https://staging-feeds.example.com/v3"
 base_grpc = "staging-grpc.example.com:443"
 ```
 
@@ -356,17 +354,16 @@ synthient feeds streams --format json
 
 Current stream names:
 
-| Stream           | Aliases                        | Description                                                                                     |
-| ---------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks                       |
-| `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                                            |
-| `torrents`       | `torrent`                      | DHT and tracker peer sightings                                                                  |
-| `ja4`            |                                | TLS and HTTP fingerprint captures from the JA4 suite                                            |
-| `ja4t`           |                                | TCP handshake fingerprint observations from JA4T sensors                                        |
-| `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                                       |
-| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                                                    |
-| `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels (snapshots only, no live stream)                |
-| `honeypot_adb`   | `helios_adb`, `adb`            | Android Debug Bridge shell commands captured by Helios sensors (snapshots only, no live stream) |
+| Stream           | Aliases                        | Description                                                               |
+| ---------------- | ------------------------------ | ------------------------------------------------------------------------- |
+| `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks |
+| `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                      |
+| `torrents`       | `torrent`                      | DHT and tracker peer sightings                                            |
+| `ja4t`           |                                | TCP handshake fingerprint observations from JA4T sensors                  |
+| `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                 |
+| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                              |
+| `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels                           |
+| `honeypot_adb`   | `helios_adb`, `adb`            | Android Debug Bridge shell commands captured by Helios sensors            |
 
 List snapshots:
 
@@ -555,12 +552,6 @@ Use plaintext for local reflection servers:
 synthient grpc schema --endpoint 127.0.0.1:50051 --plaintext
 ```
 
-Include reflection service descriptors:
-
-```bash
-synthient grpc schema --include-reflection
-```
-
 Flags:
 
 | Flag                     | Purpose                                       |
@@ -570,7 +561,6 @@ Flags:
 | `--endpoint <host:port>` | Override configured gRPC endpoint             |
 | `--timeout <duration>`   | Reflection timeout, default `15s`             |
 | `--plaintext`            | Connect without TLS                           |
-| `--include-reflection`   | Include gRPC reflection descriptors in output |
 
 ## MCP Server
 
@@ -599,7 +589,7 @@ Exposed tools:
 | `sample_stream`       | Collect a bounded sample of live events from a real-time feed   |
 | `grpc_schema`         | Fetch protobuf descriptors through gRPC reflection              |
 
-Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover the streams that support those surfaces; the honeypot DNS and ADB feeds are snapshot-only and have no live sample.
+Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover every stream listed by `list_feed_streams`.
 
 Flags:
 

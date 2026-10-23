@@ -13,7 +13,7 @@ import (
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go/grpcschema"
 	"go.mattglei.ch/timber"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -57,28 +57,26 @@ var SchemaCommand = &cobra.Command{
 			app.Fatal(err, "failed to read configuration file")
 		}
 
-		client, err := auth.SynthientClient(config)
+		credentials, err := auth.ReadCredentials()
 		if err != nil {
-			app.Fatal(err, "failed to create synthient client")
+			app.Fatal(err, "failed to read synthient credentials")
 		}
-		config.ApplyToClient(&client)
 
 		endpoint := strings.TrimSpace(flags.endpoint)
 		if endpoint == "" {
-			endpoint = config.GRPCEndpoint(synthient.DefaultGRPCEndpoint)
+			endpoint = config.GRPCEndpoint(grpcschema.DefaultEndpoint)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), flags.timeout)
 		defer cancel()
 
-		result, err := client.GRPCSchema(ctx, &synthient.GRPCSchemaOptions{
-			Endpoint:          endpoint,
-			Plaintext:         flags.plaintext,
-			IncludeReflection: flags.includeReflection,
-			Symbols:           args,
+		result, err := grpcschema.Fetch(ctx, credentials.Key, grpcschema.Options{
+			Endpoint:  endpoint,
+			Plaintext: flags.plaintext,
+			Symbols:   args,
 		})
 		if err != nil {
-			if msg := synthient.ExplainGRPCError(err); msg != "" {
+			if msg := grpcschema.Explain(err); msg != "" {
 				timber.FatalMsg(msg)
 			}
 			app.Fatal(err, "failed to fetch protobuf schemas")
@@ -117,7 +115,7 @@ func writeBytes(out *os.File, data []byte) {
 	}
 }
 
-func writeText(out *os.File, styles output.Styles, result synthient.GRPCSchemaResult) {
+func writeText(out *os.File, styles output.Styles, result *grpcschema.Schema) {
 	output.Header(out, styles, "Protobuf Schema", result.Endpoint)
 	output.Divider(out, styles)
 	blocks := []output.Block{

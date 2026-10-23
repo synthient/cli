@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/synthient/cli/internal/conf"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 	"github.com/zalando/go-keyring"
 )
 
@@ -19,12 +19,12 @@ type Credentials struct {
 	Source string
 }
 
-func SynthientClient(config conf.Config) (synthient.Client, error) {
+func SynthientClient(config conf.Config) (*synthient.Client, error) {
 	credentials, err := ReadCredentials()
 	if err != nil {
-		return synthient.Client{}, err
+		return nil, err
 	}
-	return synthient.NewClient(credentials.Key), nil
+	return synthient.NewClient(credentials.Key, config.ClientOptions()...)
 }
 
 func ReadCredentials() (Credentials, error) {

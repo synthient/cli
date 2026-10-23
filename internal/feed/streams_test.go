@@ -1,24 +1,27 @@
 package feed
 
-import "testing"
+import (
+	"testing"
 
-func TestFindJA4Streams(t *testing.T) {
-	tests := []string{"ja4", "ja4t"}
-	for _, name := range tests {
-		stream, ok := Find(name)
-		if !ok {
-			t.Fatalf("Find(%q) did not find stream", name)
-		}
-		if stream.Name != name {
-			t.Fatalf("Find(%q) returned %q", name, stream.Name)
-		}
-	}
-}
+	"github.com/synthient/synthient-go"
+)
 
-func TestNamesIncludesJA4Streams(t *testing.T) {
-	want := "proxies|anonymizers|torrents|ja4|ja4t|honeypot_http|honeypot_https|honeypot_dns|honeypot_adb"
+func TestNames(t *testing.T) {
+	want := "proxies|anonymizers|torrents|ja4t|honeypot_http|honeypot_https|honeypot_dns|honeypot_adb"
 	got := Names()
 	if got != want {
 		t.Fatalf("Names() = %q, want %q", got, want)
+	}
+}
+
+func TestEveryStreamHasFeed(t *testing.T) {
+	client, err := synthient.NewClient("test")
+	if err != nil {
+		t.Fatalf("NewClient returned error: %v", err)
+	}
+	for _, stream := range Streams {
+		if stream.Feed(client) == nil {
+			t.Errorf("stream %q has no feed", stream.Name)
+		}
 	}
 }

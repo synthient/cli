@@ -1,6 +1,7 @@
 package status
 
 import (
+	"context"
 	"encoding/csv"
 	"os"
 	"slices"
@@ -8,11 +9,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/access"
 	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
+	"github.com/synthient/synthient-go/grpcschema"
 	"go.mattglei.ch/timber"
 )
 
@@ -20,14 +23,13 @@ type Result struct {
 	ConfigPath       string   `json:"config_path"`
 	Profile          string   `json:"profile"`
 	BaseAPI          string   `json:"base_api"`
-	BaseFeeds        string   `json:"base_feeds"`
 	BaseGRPC         string   `json:"base_grpc"`
 	AuthSource       string   `json:"auth_source"`
 	Authenticated    bool     `json:"authenticated"`
 	AccountEmail     string   `json:"account_email"`
 	Organization     string   `json:"organization"`
-	LookupCredits    int      `json:"lookup_credits"`
-	QuotaResetsIn    int      `json:"quota_resets_in"`
+	LookupCredits    int64    `json:"lookup_credits"`
+	QuotaResetsIn    int64    `json:"quota_resets_in"`
 	Scopes           []string `json:"scopes"`
 	AccountReachable bool     `json:"account_reachable"`
 	AccountError     string   `json:"account_error"`
@@ -46,14 +48,9 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to read configuration file")
 		}
-		defaults := synthient.NewClient("")
-		baseAPI := defaults.BaseAPI.String()
-		baseFeeds := defaults.BaseFeeds.String()
+		baseAPI := synthient.DefaultBaseURL
 		if config.BaseApiURL != nil {
 			baseAPI = config.BaseApiURL.String()
-		}
-		if config.BaseFeedsURL != nil {
-			baseFeeds = config.BaseFeedsURL.String()
 		}
 
 		result := Result{
@@ -61,15 +58,13 @@ var Command = &cobra.Command{
 			Profile:      config.Profile,
 			AuthSource:   auth.ReadCredentialsStatus().Source,
 			BaseAPI:      baseAPI,
-			BaseFeeds:    baseFeeds,
-			BaseGRPC:     config.GRPCEndpoint(synthient.DefaultGRPCEndpoint),
+			BaseGRPC:     config.GRPCEndpoint(grpcschema.DefaultEndpoint),
 			AccountError: "",
 		}
 
 		client, err := auth.SynthientClient(config)
 		if err == nil {
-			config.ApplyToClient(&client)
-			account, accountErr := client.GetAccount(nil)
+			account, accountErr := client.Account(context.Background())
 			if accountErr == nil {
 				result.Authenticated = true
 				result.AccountReachable = true
@@ -77,7 +72,7 @@ var Command = &cobra.Command{
 				result.Organization = account.Organization.Name
 				result.LookupCredits = account.LookupQuota.Credits
 				result.QuotaResetsIn = account.LookupQuota.ResetsIn
-				result.Scopes = account.Scopes
+				result.Scopes = access.Strings(account.Scopes)
 			} else {
 				result.AccountError = app.Explain(accountErr)
 				if result.AccountError == "" {
@@ -86,6 +81,9 @@ var Command = &cobra.Command{
 			}
 		} else {
 			result.AccountError = app.Explain(err)
+			if result.AccountError == "" {
+				result.AccountError = err.Error()
+			}
 		}
 
 		out, closeOut := output.Open(flags.output)
@@ -97,7 +95,7 @@ var Command = &cobra.Command{
 			output.JSON(out, result)
 		case "csv":
 			writer := csv.NewWriter(out)
-			err := writer.Write([]string{"config_path", "profile", "base_api", "base_feeds", "base_grpc", "auth_source", "authenticated", "account_email", "organization", "lookup_credits", "quota_resets_in", "scopes", "account_reachable", "account_error"})
+			err := writer.Write([]string{"config_path", "profile", "base_api", "base_grpc", "auth_source", "authenticated", "account_email", "organization", "lookup_credits", "quota_resets_in", "scopes", "account_reachable", "account_error"})
 			if err != nil {
 				app.Fatal(err, "failed to write csv header")
 			}
@@ -105,14 +103,13 @@ var Command = &cobra.Command{
 				result.ConfigPath,
 				result.Profile,
 				result.BaseAPI,
-				result.BaseFeeds,
 				result.BaseGRPC,
 				result.AuthSource,
 				strconv.FormatBool(result.Authenticated),
 				result.AccountEmail,
 				result.Organization,
-				strconv.Itoa(result.LookupCredits),
-				strconv.Itoa(result.QuotaResetsIn),
+				strconv.FormatInt(result.LookupCredits, 10),
+				strconv.FormatInt(result.QuotaResetsIn, 10),
 				strings.Join(result.Scopes, "|"),
 				strconv.FormatBool(result.AccountReachable),
 				result.AccountError,
@@ -136,7 +133,6 @@ func writeText(out *os.File, result Result) {
 				{Key: "Config", Value: result.ConfigPath},
 				{Key: "Profile", Value: result.Profile},
 				{Key: "Base API", Value: result.BaseAPI},
-				{Key: "Base Feeds", Value: result.BaseFeeds},
 				{Key: "Base gRPC", Value: result.BaseGRPC},
 			},
 		},

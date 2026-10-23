@@ -4,28 +4,29 @@ import (
 	"testing"
 
 	"github.com/synthient/cli/internal/feed"
+	"github.com/synthient/synthient-go"
 )
 
-func TestRequiredJA4Scopes(t *testing.T) {
-	tests := []struct {
-		stream      string
-		feedScope   string
-		streamScope string
-	}{
-		{stream: "ja4", feedScope: "JA4_FEED", streamScope: "JA4_STREAM"},
-		{stream: "ja4t", feedScope: "JA4T_FEED", streamScope: "JA4T_STREAM"},
+func TestEveryStreamHasScopes(t *testing.T) {
+	for _, stream := range feed.Streams {
+		if Required(stream, "feed") == "" {
+			t.Errorf("stream %q has no feed scope", stream.Name)
+		}
+		if Required(stream, "stream") == "" {
+			t.Errorf("stream %q has no stream scope", stream.Name)
+		}
 	}
+}
 
-	for _, test := range tests {
-		stream, ok := feed.Find(test.stream)
-		if !ok {
-			t.Fatalf("feed.Find(%q) did not find stream", test.stream)
-		}
-		if got := Required(stream, "feed"); got != test.feedScope {
-			t.Errorf("Required(%q, feed) = %q, want %q", test.stream, got, test.feedScope)
-		}
-		if got := Required(stream, "stream"); got != test.streamScope {
-			t.Errorf("Required(%q, stream) = %q, want %q", test.stream, got, test.streamScope)
-		}
+func TestRequiredJA4TScopes(t *testing.T) {
+	stream, ok := feed.Find("ja4t")
+	if !ok {
+		t.Fatal("feed.Find(\"ja4t\") did not find stream")
+	}
+	if got := Required(stream, "feed"); got != synthient.ScopeJA4TFeed {
+		t.Errorf("Required(ja4t, feed) = %q, want %q", got, synthient.ScopeJA4TFeed)
+	}
+	if got := Required(stream, "stream"); got != synthient.ScopeJA4TStream {
+		t.Errorf("Required(ja4t, stream) = %q, want %q", got, synthient.ScopeJA4TStream)
 	}
 }

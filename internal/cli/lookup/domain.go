@@ -1,6 +1,7 @@
 package lookup
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"strconv"
@@ -32,16 +33,15 @@ var DomainCommand = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to create synthient client")
 		}
-		config.ApplyToClient(&client)
 
-		resp, err := client.GetDomain(args[0], nil)
+		resp, err := client.LookupDomain(context.Background(), args[0])
 		if err != nil {
 			app.Fatal(err, "failed to lookup given domain")
 		}
 
 		switch flags.format {
 		case "text":
-			output.Domain(resp, out, output.NewStyles(out))
+			output.Domain(*resp, out, output.NewStyles(out))
 		case "json":
 			output.JSON(out, resp)
 		case "csv":
@@ -74,11 +74,11 @@ var DomainCommand = &cobra.Command{
 			}
 			err = writer.Write([]string{
 				resp.Domain,
-				resp.Status,
-				strconv.Itoa(resp.Stats.Events24H),
-				strconv.Itoa(resp.Stats.TotalEvents30D),
-				strconv.Itoa(resp.UniqueIPs.Value24H),
-				strconv.Itoa(resp.UniqueIPs.Value30D),
+				string(resp.Status),
+				strconv.FormatInt(resp.Stats.Events24h, 10),
+				strconv.FormatInt(resp.Stats.TotalEvents30d, 10),
+				strconv.FormatInt(resp.UniqueIPs.Value24h, 10),
+				strconv.FormatInt(resp.UniqueIPs.Value30d, 10),
 				string(topSubdomains),
 				string(topPorts),
 				string(recentEvents),

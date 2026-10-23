@@ -15,14 +15,12 @@ import (
 
 type Config struct {
 	Endpoints struct {
-		BaseAPI   string `toml:"base_api"`
-		BaseFeeds string `toml:"base_feeds"`
-		BaseGRPC  string `toml:"base_grpc"`
+		BaseAPI  string `toml:"base_api"`
+		BaseGRPC string `toml:"base_grpc"`
 	} `toml:"endpoints"`
 
 	// fields that are created based on existing fields
-	BaseApiURL   *url.URL `toml:"-"`
-	BaseFeedsURL *url.URL `toml:"-"`
+	BaseApiURL *url.URL `toml:"-"`
 
 	Profiles map[string]ProfileConfig `toml:"profiles"`
 	Path     string                   `toml:"-"`
@@ -31,9 +29,8 @@ type Config struct {
 
 type ProfileConfig struct {
 	Endpoints struct {
-		BaseAPI   string `toml:"base_api"`
-		BaseFeeds string `toml:"base_feeds"`
-		BaseGRPC  string `toml:"base_grpc"`
+		BaseAPI  string `toml:"base_api"`
+		BaseGRPC string `toml:"base_grpc"`
 	} `toml:"endpoints"`
 }
 
@@ -63,9 +60,6 @@ func Read() (Config, error) {
 		if profile.Endpoints.BaseAPI != "" {
 			data.Endpoints.BaseAPI = profile.Endpoints.BaseAPI
 		}
-		if profile.Endpoints.BaseFeeds != "" {
-			data.Endpoints.BaseFeeds = profile.Endpoints.BaseFeeds
-		}
 		if profile.Endpoints.BaseGRPC != "" {
 			data.Endpoints.BaseGRPC = profile.Endpoints.BaseGRPC
 		}
@@ -74,11 +68,6 @@ func Read() (Config, error) {
 	data.BaseApiURL, err = parseRawURL(data.Endpoints.BaseAPI)
 	if err != nil {
 		return Config{}, fmt.Errorf("parsing base url: %w", err)
-	}
-
-	data.BaseFeedsURL, err = parseRawURL(data.Endpoints.BaseFeeds)
-	if err != nil {
-		return Config{}, fmt.Errorf("parsing feeds url: %w", err)
 	}
 
 	return data, nil
