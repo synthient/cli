@@ -20,7 +20,6 @@ type Result struct {
 	ConfigPath       string   `json:"config_path"`
 	Profile          string   `json:"profile"`
 	BaseAPI          string   `json:"base_api"`
-	BaseFeeds        string   `json:"base_feeds"`
 	BaseGRPC         string   `json:"base_grpc"`
 	AuthSource       string   `json:"auth_source"`
 	Authenticated    bool     `json:"authenticated"`
@@ -48,12 +47,8 @@ var Command = &cobra.Command{
 		}
 		defaults := synthient.NewClient("")
 		baseAPI := defaults.BaseAPI.String()
-		baseFeeds := defaults.BaseFeeds.String()
 		if config.BaseApiURL != nil {
 			baseAPI = config.BaseApiURL.String()
-		}
-		if config.BaseFeedsURL != nil {
-			baseFeeds = config.BaseFeedsURL.String()
 		}
 
 		result := Result{
@@ -61,7 +56,6 @@ var Command = &cobra.Command{
 			Profile:      config.Profile,
 			AuthSource:   auth.ReadCredentialsStatus().Source,
 			BaseAPI:      baseAPI,
-			BaseFeeds:    baseFeeds,
 			BaseGRPC:     config.GRPCEndpoint(synthient.DefaultGRPCEndpoint),
 			AccountError: "",
 		}
@@ -97,7 +91,7 @@ var Command = &cobra.Command{
 			output.JSON(out, result)
 		case "csv":
 			writer := csv.NewWriter(out)
-			err := writer.Write([]string{"config_path", "profile", "base_api", "base_feeds", "base_grpc", "auth_source", "authenticated", "account_email", "organization", "lookup_credits", "quota_resets_in", "scopes", "account_reachable", "account_error"})
+			err := writer.Write([]string{"config_path", "profile", "base_api", "base_grpc", "auth_source", "authenticated", "account_email", "organization", "lookup_credits", "quota_resets_in", "scopes", "account_reachable", "account_error"})
 			if err != nil {
 				app.Fatal(err, "failed to write csv header")
 			}
@@ -105,7 +99,6 @@ var Command = &cobra.Command{
 				result.ConfigPath,
 				result.Profile,
 				result.BaseAPI,
-				result.BaseFeeds,
 				result.BaseGRPC,
 				result.AuthSource,
 				strconv.FormatBool(result.Authenticated),
@@ -136,7 +129,6 @@ func writeText(out *os.File, result Result) {
 				{Key: "Config", Value: result.ConfigPath},
 				{Key: "Profile", Value: result.Profile},
 				{Key: "Base API", Value: result.BaseAPI},
-				{Key: "Base Feeds", Value: result.BaseFeeds},
 				{Key: "Base gRPC", Value: result.BaseGRPC},
 			},
 		},

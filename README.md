@@ -231,12 +231,10 @@ Example:
 ```toml
 [endpoints]
 base_api = "https://api.synthient.com/api/v4"
-base_feeds = "https://feeds.synthient.com/v3"
 base_grpc = "grpc.synthient.com:443"
 
 [profiles.staging.endpoints]
 base_api = "https://staging-api.example.com/api/v4"
-base_feeds = "https://staging-feeds.example.com/v3"
 base_grpc = "staging-grpc.example.com:443"
 ```
 
