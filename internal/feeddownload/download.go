@@ -1,6 +1,7 @@
 package feeddownload
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -15,11 +16,11 @@ import (
 	"github.com/synthient/cli/internal/feed"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/utils"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 )
 
 type Options struct {
-	Client   synthient.Client
+	Client   *synthient.Client
 	Stream   feed.Stream
 	Snapshot string
 	Filename string
@@ -33,7 +34,7 @@ type Result struct {
 	Size     int64
 	Checksum string
 	Duration time.Duration
-	Meta     synthient.FeedSnapshotMeta
+	Meta     synthient.ExportMeta
 }
 
 type downloadResult struct {
@@ -87,18 +88,18 @@ func Run(opts Options) (Result, error) {
 	return renderer.run(opts, meta, done)
 }
 
-func getMeta(opts Options, progress bool) (synthient.FeedSnapshotMeta, bool, error) {
+func getMeta(opts Options, progress bool) (synthient.ExportMeta, bool, error) {
 	if !opts.Verify && !progress {
-		return synthient.FeedSnapshotMeta{}, false, nil
+		return synthient.ExportMeta{}, false, nil
 	}
-	meta, err := opts.Client.FeedSnapshotMeta(opts.Stream.Name, opts.Snapshot, nil)
+	meta, err := opts.Stream.Feed(opts.Client).ExportMeta(context.Background(), opts.Snapshot)
 	if err != nil {
 		if opts.Verify {
-			return synthient.FeedSnapshotMeta{}, false, fmt.Errorf("getting feed snapshot metadata: %w", err)
+			return synthient.ExportMeta{}, false, fmt.Errorf("getting feed snapshot metadata: %w", err)
 		}
-		return synthient.FeedSnapshotMeta{}, false, nil
+		return synthient.ExportMeta{}, false, nil
 	}
-	return meta, true, nil
+	return *meta, true, nil
 }
 
 func downloadSnapshot(opts Options) (int64, error) {
@@ -113,12 +114,7 @@ func downloadSnapshot(opts Options) (int64, error) {
 		return 0, statErr
 	}
 
-	date, hour, err := feed.SnapshotDateHour(opts.Snapshot)
-	if err != nil {
-		return 0, err
-	}
-
-	r, err := opts.Client.DownloadFeedSnapshot(opts.Stream.Name, date, hour, "", nil)
+	r, err := opts.Stream.Feed(opts.Client).Download(context.Background(), opts.Snapshot)
 	if err != nil {
 		return 0, err
 	}
@@ -152,7 +148,7 @@ func downloadSnapshot(opts Options) (int64, error) {
 	return size, nil
 }
 
-func finish(opts Options, meta synthient.FeedSnapshotMeta, download downloadResult, start time.Time) (Result, error) {
+func finish(opts Options, meta synthient.ExportMeta, download downloadResult, start time.Time) (Result, error) {
 	if download.Err != nil {
 		return Result{}, download.Err
 	}
@@ -171,7 +167,7 @@ func finish(opts Options, meta synthient.FeedSnapshotMeta, download downloadResu
 	return result, nil
 }
 
-func verify(filename string, meta synthient.FeedSnapshotMeta) (string, error) {
+func verify(filename string, meta synthient.ExportMeta) (string, error) {
 	checksum, err := feed.FileChecksum(filename)
 	if err != nil {
 		return "", fmt.Errorf("calculating downloaded file checksum: %w", err)
@@ -194,7 +190,7 @@ type progressRenderer struct {
 	started   bool
 }
 
-func (r *progressRenderer) run(opts Options, meta synthient.FeedSnapshotMeta, done <-chan downloadResult) (Result, error) {
+func (r *progressRenderer) run(opts Options, meta synthient.ExportMeta, done <-chan downloadResult) (Result, error) {
 	var (
 		downloadSize int64
 		prevSize     int64

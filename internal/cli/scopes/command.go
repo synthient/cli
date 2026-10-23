@@ -1,6 +1,7 @@
 package scopes
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -13,13 +14,14 @@ import (
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
+	"github.com/synthient/synthient-go"
 	"go.mattglei.ch/timber"
 )
 
 type Row struct {
-	Scope   string `json:"scope"`
-	Grants  string `json:"grants"`
-	Granted bool   `json:"granted"`
+	Scope   synthient.Scope `json:"scope"`
+	Grants  string          `json:"grants"`
+	Granted bool            `json:"granted"`
 }
 
 var Command = &cobra.Command{
@@ -31,13 +33,12 @@ var Command = &cobra.Command{
 			timber.FatalMsgf("invalid output format %q; valid formats: %s", flags.format, strings.Join(formats, "|"))
 		}
 
-		granted := []string{}
+		granted := []synthient.Scope{}
 		config, err := conf.Read()
 		if err == nil {
 			client, clientErr := auth.SynthientClient(config)
 			if clientErr == nil {
-				config.ApplyToClient(&client)
-				account, accountErr := client.GetAccount(nil)
+				account, accountErr := client.Account(context.Background())
 				if accountErr == nil {
 					granted = account.Scopes
 				}
@@ -49,7 +50,7 @@ var Command = &cobra.Command{
 			rows = append(rows, Row{
 				Scope:   scope.Scope,
 				Grants:  scope.Grants,
-				Granted: access.Has(granted, scope.Scope),
+				Granted: slices.Contains(granted, scope.Scope),
 			})
 		}
 
@@ -67,7 +68,7 @@ var Command = &cobra.Command{
 				app.Fatal(err, "failed to write csv header")
 			}
 			for _, row := range rows {
-				err = writer.Write([]string{row.Scope, row.Grants, fmt.Sprint(row.Granted)})
+				err = writer.Write([]string{string(row.Scope), row.Grants, fmt.Sprint(row.Granted)})
 				if err != nil {
 					app.Fatal(err, "failed to write csv row")
 				}
@@ -99,7 +100,7 @@ func writeText(out *os.File, rows []Row) {
 			fmt.Sprintf(
 				"%s  %s %s %s",
 				styles.Frame.Render(connector),
-				output.PadRight(styles.Key.Render(row.Scope), 24),
+				output.PadRight(styles.Key.Render(string(row.Scope)), 24),
 				markerStyle.Render(marker),
 				styles.Muted.Render(row.Grants),
 			),

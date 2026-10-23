@@ -27,7 +27,6 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to create synthient client")
 		}
-		config.ApplyToClient(&client)
 
 		if flags.transport != "stdio" {
 			timber.FatalMsgf("unsupported transport %q; valid transports: %s", flags.transport, "stdio")

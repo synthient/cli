@@ -1,6 +1,7 @@
 package lookup
 
 import (
+	"context"
 	"encoding/csv"
 	"slices"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
 	"github.com/synthient/cli/internal/utils"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 	"go.mattglei.ch/timber"
 )
 
@@ -52,6 +53,11 @@ func runIPs(args []string) {
 		return
 	}
 
+	addrs, err := utils.ParseIPs(args)
+	if err != nil {
+		timber.FatalMsg(err.Error())
+	}
+
 	config, err := conf.Read()
 	if err != nil {
 		app.Fatal(err, "failed to read from config file")
@@ -61,18 +67,18 @@ func runIPs(args []string) {
 	if err != nil {
 		app.Fatal(err, "failed to create synthient client")
 	}
-	config.ApplyToClient(&client)
 
+	ctx := context.Background()
 	styles := output.NewStyles(out)
-	ips := []synthient.IP{}
-	if len(args) == 1 {
-		resp, err := client.GetIP(args[0], nil)
+	ips := []synthient.IPInfo{}
+	if len(addrs) == 1 {
+		resp, err := client.LookupIP(ctx, addrs[0])
 		if err != nil {
 			app.Fatal(err, "failed to lookup given IP")
 		}
-		ips = append(ips, resp)
+		ips = append(ips, *resp)
 	} else {
-		resp, err := client.GetIPs(args, nil)
+		resp, err := client.LookupIPs(ctx, addrs)
 		if err != nil {
 			app.Fatal(err, "failed to lookup given IPs")
 		}

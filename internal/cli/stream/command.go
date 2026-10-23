@@ -8,6 +8,7 @@ import (
 	"iter"
 	"math"
 	"math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ import (
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/feed"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 	"go.mattglei.ch/timber"
 )
 
@@ -48,7 +49,6 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to create synthient client")
 		}
-		config.ApplyToClient(&client)
 
 		if !flags.noPreflight {
 			err = access.Require(client, access.Required(stream, "stream"))
@@ -68,11 +68,7 @@ var Command = &cobra.Command{
 		}
 
 		if !flags.reconnect {
-			seq, buildErr := buildSeq(ctx, &client, stream)
-			if buildErr != nil {
-				app.Fatal(buildErr, "failed to initialize stream")
-			}
-			result := streamOnce(ctx, seq, out, flags.maxEvents)
+			result := streamOnce(ctx, stream.Feed(client).Events(ctx), out, flags.maxEvents)
 			if result.Err != nil {
 				app.Fatal(result.Err, "failed to stream feed")
 			}
@@ -89,11 +85,7 @@ var Command = &cobra.Command{
 					return
 				}
 			}
-			seq, buildErr := buildSeq(ctx, &client, stream)
-			if buildErr != nil {
-				app.Fatal(buildErr, "failed to initialize stream")
-			}
-			result := streamOnce(ctx, seq, out, remaining)
+			result := streamOnce(ctx, stream.Feed(client).Events(ctx), out, remaining)
 			total += result.Count
 			if result.Done {
 				return
@@ -103,10 +95,7 @@ var Command = &cobra.Command{
 				attempt = 0
 				continue
 			}
-			if errors.Is(err, synthient.ErrBadRequest) ||
-				errors.Is(err, synthient.ErrUnauthorized) ||
-				errors.Is(err, synthient.ErrPaymentRequired) ||
-				errors.Is(err, synthient.ErrNoToken) {
+			if permanent(err) {
 				app.Fatal(err, "failed to stream feed")
 			}
 			delay := retryDelay(attempt)
@@ -127,38 +116,16 @@ type streamResult struct {
 	Err   error
 }
 
-func buildSeq(ctx context.Context, client *synthient.Client, s feed.Stream) (iter.Seq2[json.RawMessage, error], error) {
-	opts := &synthient.RequestOptions{Context: ctx}
-	switch s.Name {
-	case "proxies":
-		return toRaw(client.StreamProxy(opts)), nil
-	case "anonymizers":
-		return toRaw(client.StreamAnonymizer(opts)), nil
-	case "torrents":
-		return toRaw(client.StreamTorrent(opts)), nil
-	case "ja4t":
-		return toRaw(client.StreamJA4T(opts)), nil
-	case "honeypot_http":
-		return toRaw(client.StreamHeliosHTTP(opts)), nil
-	case "honeypot_https":
-		return toRaw(client.StreamHeliosTLS(opts)), nil
-	default:
-		return nil, fmt.Errorf("real-time stream not supported for %q", s.Name)
+func permanent(err error) bool {
+	apiErr, ok := errors.AsType[*synthient.APIError](err)
+	if !ok {
+		return false
 	}
-}
-
-func toRaw[T any](seq iter.Seq2[T, error]) iter.Seq2[json.RawMessage, error] {
-	return func(yield func(json.RawMessage, error) bool) {
-		for event, err := range seq {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-			b, marshalErr := json.Marshal(event)
-			if !yield(b, marshalErr) {
-				return
-			}
-		}
+	switch apiErr.StatusCode {
+	case http.StatusBadRequest, http.StatusUnauthorized, http.StatusPaymentRequired:
+		return true
+	default:
+		return false
 	}
 }
 

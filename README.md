@@ -354,16 +354,16 @@ synthient feeds streams --format json
 
 Current stream names:
 
-| Stream           | Aliases                        | Description                                                                                     |
-| ---------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks                       |
-| `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                                            |
-| `torrents`       | `torrent`                      | DHT and tracker peer sightings                                                                  |
-| `ja4t`           |                                | TCP handshake fingerprint observations from JA4T sensors                                        |
-| `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                                       |
-| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                                                    |
-| `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels (snapshots only, no live stream)                |
-| `honeypot_adb`   | `helios_adb`, `adb`            | Android Debug Bridge shell commands captured by Helios sensors (snapshots only, no live stream) |
+| Stream           | Aliases                        | Description                                                               |
+| ---------------- | ------------------------------ | ------------------------------------------------------------------------- |
+| `proxies`        | `proxy`                        | Proxy IP observations across residential, datacenter, and mobile networks |
+| `anonymizers`    | `anonymizer`                   | VPN, Tor, private relay, and other anonymizer ranges                      |
+| `torrents`       | `torrent`                      | DHT and tracker peer sightings                                            |
+| `ja4t`           |                                | TCP handshake fingerprint observations from JA4T sensors                  |
+| `honeypot_http`  | `helios_http`, `http`          | HTTP request captures from Helios sensors                                 |
+| `honeypot_https` | `helios_https`, `https`, `tls` | TLS ClientHello captures from Helios sensors                              |
+| `honeypot_dns`   | `helios_dns`, `dns`            | DNS resolution observations from Helios tunnels                           |
+| `honeypot_adb`   | `helios_adb`, `adb`            | Android Debug Bridge shell commands captured by Helios sensors            |
 
 List snapshots:
 
@@ -589,7 +589,7 @@ Exposed tools:
 | `sample_stream`       | Collect a bounded sample of live events from a real-time feed   |
 | `grpc_schema`         | Fetch protobuf descriptors through gRPC reflection              |
 
-Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover the streams that support those surfaces; the honeypot DNS and ADB feeds are snapshot-only and have no live sample.
+Snapshot tools (`list_feed_snapshots`, `feed_snapshot_meta`) and `sample_stream` cover every stream listed by `list_feed_streams`.
 
 Flags:
 

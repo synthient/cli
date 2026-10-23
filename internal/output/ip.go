@@ -9,53 +9,54 @@ import (
 	"strings"
 	"time"
 
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
 	"go.mattglei.ch/timber"
 )
 
-func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
-	Header(out, styles, "IP", ip.IP)
+func IP(ip synthient.IPInfo, out *os.File, styles Styles, spacing bool) {
+	network, location, intelligence := orZero(ip.Network), orZero(ip.Location), orZero(ip.Intelligence)
+	Header(out, styles, "IP", ip.IP.String())
 	Divider(out, styles)
 
 	blocks := []Block{
 		{
 			Name: "Network",
 			Values: []BlockValue{
-				{Key: "ASN", Value: ip.Network.Asn},
-				{Key: "ISP", Value: ip.Network.Isp},
-				{Key: "Type", Value: ip.Network.Type},
-				{Key: "Org", Value: ip.Network.Org},
-				{Key: "Domain", Value: ip.Network.Domain},
-				{Key: "Abuse Email", Value: ip.Network.AbuseEmail},
-				{Key: "Abuse Phone", Value: ip.Network.AbusePhone},
+				{Key: "ASN", Value: network.ASN},
+				{Key: "ISP", Value: network.ISP},
+				{Key: "Type", Value: string(network.Type)},
+				{Key: "Org", Value: network.Org},
+				{Key: "Domain", Value: network.Domain},
+				{Key: "Abuse Email", Value: network.AbuseEmail},
+				{Key: "Abuse Phone", Value: network.AbusePhone},
 			},
 		},
 		{
 			Name: "Location",
 			Values: []BlockValue{
-				{Key: "City", Value: ip.Location.City},
-				{Key: "State", Value: ip.Location.State},
-				{Key: "Country", Value: ip.Location.Country},
-				{Key: "Timezone", Value: ip.Location.Timezone},
-				{Key: "Longitude", Value: ip.Location.Longitude},
-				{Key: "Latitude", Value: ip.Location.Latitude},
-				{Key: "Geo Hash", Value: ip.Location.GeoHash},
+				{Key: "City", Value: location.City},
+				{Key: "State", Value: location.State},
+				{Key: "Country", Value: location.Country},
+				{Key: "Timezone", Value: location.Timezone},
+				{Key: "Longitude", Value: location.Longitude},
+				{Key: "Latitude", Value: location.Latitude},
+				{Key: "Geo Hash", Value: location.GeoHash},
 			},
 		},
 		{
 			Name: "Intelligence",
 			Values: []BlockValue{
-				{Key: "Risk Score", Value: ip.Intelligence.RiskScore},
-				{Key: "Behavior", Value: ip.Intelligence.Behavior},
-				{Key: "Categories", Value: ip.Intelligence.Categories},
+				{Key: "Risk Score", Value: intelligence.RiskScore},
+				{Key: "Behavior", Value: intelligence.Behavior},
+				{Key: "Categories", Value: intelligence.Categories},
 			},
 		},
 	}
 
-	if len(ip.Intelligence.Devices) != 0 {
+	if len(intelligence.Devices) != 0 {
 		devices := Block{Name: "Devices"}
-		for _, device := range ip.Intelligence.Devices {
-			label := device.OS
+		for _, device := range intelligence.Devices {
+			label := string(device.OS)
 			if device.Version != "" {
 				label = fmt.Sprintf("%s %s", label, device.Version)
 			}
@@ -64,14 +65,14 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 		blocks = append(blocks, devices)
 	}
 
-	if len(ip.Intelligence.Providers) != 0 {
+	if len(intelligence.Providers) != 0 {
 		providers := Block{Name: "Proxy Providers"}
-		for _, provider := range ip.Intelligence.Providers {
+		for _, provider := range intelligence.Providers {
 			value := provider.Type
 			if provider.LastSeen > 0 {
-				value = fmt.Sprintf("%s, last seen %s", value, time.Unix(provider.LastSeen, 0).UTC().Format(time.RFC3339))
+				value = fmt.Sprintf("%s, last seen %s", value, provider.LastSeen.Time().Format(time.RFC3339))
 			}
-			providers.Values = append(providers.Values, BlockValue{Key: provider.Provider, Value: value})
+			providers.Values = append(providers.Values, BlockValue{Key: provider.Name, Value: value})
 		}
 		blocks = append(blocks, providers)
 	}
@@ -84,38 +85,39 @@ func IP(ip synthient.IP, out *os.File, styles Styles, spacing bool) {
 	}
 }
 
-func IpCSV(ip synthient.IP, writer *csv.Writer) {
-	providersData, err := json.Marshal(ip.Intelligence.Providers)
+func IpCSV(ip synthient.IPInfo, writer *csv.Writer) {
+	network, location, intelligence := orZero(ip.Network), orZero(ip.Location), orZero(ip.Intelligence)
+	providersData, err := json.Marshal(intelligence.Providers)
 	if err != nil {
 		timber.Fatal(err, "failed to marshal JSON data for providers data")
 	}
-	devicesData, err := json.Marshal(ip.Intelligence.Devices)
+	devicesData, err := json.Marshal(intelligence.Devices)
 	if err != nil {
 		timber.Fatal(err, "failed to marshal JSON data for devices data")
 	}
 
 	err = writer.Write([]string{
-		ip.IP,
+		ip.IP.String(),
 
-		strconv.Itoa(ip.Network.Asn),
-		ip.Network.Isp,
-		ip.Network.Type,
-		ip.Network.Org,
-		ip.Network.Domain,
-		ip.Network.AbuseEmail,
-		ip.Network.AbusePhone,
+		strconv.FormatInt(network.ASN, 10),
+		network.ISP,
+		string(network.Type),
+		network.Org,
+		network.Domain,
+		network.AbuseEmail,
+		network.AbusePhone,
 
-		ip.Location.City,
-		ip.Location.State,
-		ip.Location.Country,
-		ip.Location.Timezone,
-		strconv.FormatFloat(ip.Location.Longitude, 'f', -1, 64),
-		strconv.FormatFloat(ip.Location.Latitude, 'f', -1, 64),
-		ip.Location.GeoHash,
+		location.City,
+		location.State,
+		location.Country,
+		location.Timezone,
+		strconv.FormatFloat(location.Longitude, 'f', -1, 64),
+		strconv.FormatFloat(location.Latitude, 'f', -1, 64),
+		location.GeoHash,
 
-		strings.Join(ip.Intelligence.Behavior, "|"),
-		strings.Join(ip.Intelligence.Categories, "|"),
-		strconv.Itoa(ip.Intelligence.RiskScore),
+		strings.Join(intelligence.Behavior, "|"),
+		strings.Join(intelligence.Categories, "|"),
+		strconv.Itoa(intelligence.RiskScore),
 		string(devicesData),
 		string(providersData),
 	})
@@ -123,4 +125,12 @@ func IpCSV(ip synthient.IP, writer *csv.Writer) {
 		timber.Fatal(err, "failed to write csv row for ip")
 	}
 	writer.Flush()
+}
+
+func orZero[T any](value *T) T {
+	if value == nil {
+		var zero T
+		return zero
+	}
+	return *value
 }

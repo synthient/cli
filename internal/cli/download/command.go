@@ -50,7 +50,6 @@ Snapshots: latest, YYYY-MM-DD, or YYYY-MM-DD/HH`, streamList()),
 		if err != nil {
 			app.Fatal(err, "failed to create synthient client")
 		}
-		config.ApplyToClient(&client)
 
 		var (
 			streamName = args[0]

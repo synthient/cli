@@ -1,6 +1,7 @@
 package status
 
 import (
+	"context"
 	"encoding/csv"
 	"os"
 	"slices"
@@ -8,11 +9,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/access"
 	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
 	"github.com/synthient/cli/internal/output"
-	"github.com/synthient/go-synthient/v2"
+	"github.com/synthient/synthient-go"
+	"github.com/synthient/synthient-go/grpcschema"
 	"go.mattglei.ch/timber"
 )
 
@@ -25,8 +28,8 @@ type Result struct {
 	Authenticated    bool     `json:"authenticated"`
 	AccountEmail     string   `json:"account_email"`
 	Organization     string   `json:"organization"`
-	LookupCredits    int      `json:"lookup_credits"`
-	QuotaResetsIn    int      `json:"quota_resets_in"`
+	LookupCredits    int64    `json:"lookup_credits"`
+	QuotaResetsIn    int64    `json:"quota_resets_in"`
 	Scopes           []string `json:"scopes"`
 	AccountReachable bool     `json:"account_reachable"`
 	AccountError     string   `json:"account_error"`
@@ -45,8 +48,7 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to read configuration file")
 		}
-		defaults := synthient.NewClient("")
-		baseAPI := defaults.BaseAPI.String()
+		baseAPI := synthient.DefaultBaseURL
 		if config.BaseApiURL != nil {
 			baseAPI = config.BaseApiURL.String()
 		}
@@ -56,14 +58,13 @@ var Command = &cobra.Command{
 			Profile:      config.Profile,
 			AuthSource:   auth.ReadCredentialsStatus().Source,
 			BaseAPI:      baseAPI,
-			BaseGRPC:     config.GRPCEndpoint(synthient.DefaultGRPCEndpoint),
+			BaseGRPC:     config.GRPCEndpoint(grpcschema.DefaultEndpoint),
 			AccountError: "",
 		}
 
 		client, err := auth.SynthientClient(config)
 		if err == nil {
-			config.ApplyToClient(&client)
-			account, accountErr := client.GetAccount(nil)
+			account, accountErr := client.Account(context.Background())
 			if accountErr == nil {
 				result.Authenticated = true
 				result.AccountReachable = true
@@ -71,7 +72,7 @@ var Command = &cobra.Command{
 				result.Organization = account.Organization.Name
 				result.LookupCredits = account.LookupQuota.Credits
 				result.QuotaResetsIn = account.LookupQuota.ResetsIn
-				result.Scopes = account.Scopes
+				result.Scopes = access.Strings(account.Scopes)
 			} else {
 				result.AccountError = app.Explain(accountErr)
 				if result.AccountError == "" {
@@ -104,8 +105,8 @@ var Command = &cobra.Command{
 				strconv.FormatBool(result.Authenticated),
 				result.AccountEmail,
 				result.Organization,
-				strconv.Itoa(result.LookupCredits),
-				strconv.Itoa(result.QuotaResetsIn),
+				strconv.FormatInt(result.LookupCredits, 10),
+				strconv.FormatInt(result.QuotaResetsIn, 10),
 				strings.Join(result.Scopes, "|"),
 				strconv.FormatBool(result.AccountReachable),
 				result.AccountError,

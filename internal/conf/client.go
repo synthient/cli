@@ -1,11 +1,12 @@
 package conf
 
-import "github.com/synthient/go-synthient/v2"
+import "github.com/synthient/synthient-go"
 
-func (config Config) ApplyToClient(client *synthient.Client) {
-	if config.BaseApiURL != nil {
-		client.BaseAPI = *config.BaseApiURL
+func (config Config) ClientOptions() []synthient.Option {
+	if config.BaseApiURL == nil {
+		return nil
 	}
+	return []synthient.Option{synthient.WithBaseURL(config.BaseApiURL.String())}
 }
 
 func (config Config) GRPCEndpoint(defaultEndpoint string) string {

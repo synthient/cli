@@ -1,12 +1,14 @@
 package account
 
 import (
+	"context"
 	"encoding/csv"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/synthient/cli/internal/access"
 	"github.com/synthient/cli/internal/app"
 	"github.com/synthient/cli/internal/cli/auth"
 	"github.com/synthient/cli/internal/conf"
@@ -35,9 +37,8 @@ var Command = &cobra.Command{
 		if err != nil {
 			app.Fatal(err, "failed to create synthient client")
 		}
-		config.ApplyToClient(&client)
 
-		account, err := client.GetAccount(nil)
+		account, err := client.Account(context.Background())
 		if err != nil {
 			app.Fatal(err, "failed to get account info")
 		}
@@ -61,7 +62,7 @@ var Command = &cobra.Command{
 					Values: []output.BlockValue{
 						{Key: "ID", Value: account.Organization.ID},
 						{Key: "Name", Value: account.Organization.Name},
-						{Key: "Relation", Value: account.Organization.Relation},
+						{Key: "Relation", Value: string(account.Organization.Relation)},
 					},
 				},
 				{
@@ -69,7 +70,7 @@ var Command = &cobra.Command{
 					Values: []output.BlockValue{
 						{Key: "Credits", Value: account.LookupQuota.Credits},
 						{Key: "Resets In", Value: account.LookupQuota.ResetsIn},
-						{Key: "Scopes", Value: account.Scopes},
+						{Key: "Scopes", Value: access.Strings(account.Scopes)},
 					},
 				},
 			}
@@ -103,10 +104,10 @@ var Command = &cobra.Command{
 				account.Email,
 				account.Organization.ID,
 				account.Organization.Name,
-				account.Organization.Relation,
-				strings.Join(account.Scopes, "|"),
-				strconv.Itoa(account.LookupQuota.Credits),
-				strconv.Itoa(account.LookupQuota.ResetsIn),
+				string(account.Organization.Relation),
+				strings.Join(access.Strings(account.Scopes), "|"),
+				strconv.FormatInt(account.LookupQuota.Credits, 10),
+				strconv.FormatInt(account.LookupQuota.ResetsIn, 10),
 			})
 			if err != nil {
 				app.Fatal(err, "failed to write csv row")
