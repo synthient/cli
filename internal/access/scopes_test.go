@@ -6,13 +6,12 @@ import (
 	"github.com/synthient/cli/internal/feed"
 )
 
-func TestRequiredJA4Scopes(t *testing.T) {
+func TestRequiredJA4TScopes(t *testing.T) {
 	tests := []struct {
 		stream      string
 		feedScope   string
 		streamScope string
 	}{
-		{stream: "ja4", feedScope: "JA4_FEED", streamScope: "JA4_STREAM"},
 		{stream: "ja4t", feedScope: "JA4T_FEED", streamScope: "JA4T_STREAM"},
 	}
 

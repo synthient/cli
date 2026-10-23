@@ -8,9 +8,9 @@ import (
 	"github.com/synthient/go-synthient/v2"
 )
 
-func TestBuildSeqSupportsJA4Streams(t *testing.T) {
+func TestBuildSeqSupportsJA4TStream(t *testing.T) {
 	client := synthient.NewClient("test")
-	tests := []string{"ja4", "ja4t"}
+	tests := []string{"ja4t"}
 
 	for _, name := range tests {
 		stream, ok := feed.Find(name)

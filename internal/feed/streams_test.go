@@ -2,8 +2,8 @@ package feed
 
 import "testing"
 
-func TestFindJA4Streams(t *testing.T) {
-	tests := []string{"ja4", "ja4t"}
+func TestFindJA4TStream(t *testing.T) {
+	tests := []string{"ja4t"}
 	for _, name := range tests {
 		stream, ok := Find(name)
 		if !ok {
@@ -15,8 +15,8 @@ func TestFindJA4Streams(t *testing.T) {
 	}
 }
 
-func TestNamesIncludesJA4Streams(t *testing.T) {
-	want := "proxies|anonymizers|torrents|ja4|ja4t|honeypot_http|honeypot_https|honeypot_dns|honeypot_adb"
+func TestNamesIncludesJA4TStream(t *testing.T) {
+	want := "proxies|anonymizers|torrents|ja4t|honeypot_http|honeypot_https|honeypot_dns|honeypot_adb"
 	got := Names()
 	if got != want {
 		t.Fatalf("Names() = %q, want %q", got, want)

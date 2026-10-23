@@ -27,7 +27,7 @@ import (
 var Command = &cobra.Command{
 	Use:   "stream <stream>",
 	Short: "Stream a feed to stdout",
-	Long:  "Stream newline-delimited JSON from proxies, anonymizers, torrents, JA4, and Helios honeypot feeds.",
+	Long:  "Stream newline-delimited JSON from proxies, anonymizers, torrents, JA4T, and Helios honeypot feeds.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		stream, ok := feed.Find(args[0])
@@ -136,8 +136,6 @@ func buildSeq(ctx context.Context, client *synthient.Client, s feed.Stream) (ite
 		return toRaw(client.StreamAnonymizer(opts)), nil
 	case "torrents":
 		return toRaw(client.StreamTorrent(opts)), nil
-	case "ja4":
-		return toRaw(client.StreamJA4(opts)), nil
 	case "ja4t":
 		return toRaw(client.StreamJA4T(opts)), nil
 	case "honeypot_http":
