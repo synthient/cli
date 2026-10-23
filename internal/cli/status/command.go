@@ -81,6 +81,9 @@ var Command = &cobra.Command{
 			}
 		} else {
 			result.AccountError = app.Explain(err)
+			if result.AccountError == "" {
+				result.AccountError = err.Error()
+			}
 		}
 
 		out, closeOut := output.Open(flags.output)
